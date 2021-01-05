@@ -1,5 +1,5 @@
 # LAN of DOOM Authenticate By Steam Group Plugin
-SourceMod plugin for **Linux** servers that only permits members of the specified steam group to join.
+SourceMod extension and plugin that together only permits members of a specified steam group to join the server.
 
 # Building
 Check out the repository and run the ``./build.sh`` script.
