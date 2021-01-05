@@ -1,7 +1,7 @@
 #ifndef _AUTH_BY_STEAM_GROUP_EXTENSION_SMSDK_CONFIG_
 #define _AUTH_BY_STEAM_GROUP_EXTENSION_SMSDK_CONFIG_
 
-#define SMEXT_CONF_NAME			"Authenticate by Steam Group"
+#define SMEXT_CONF_NAME			"Authenticate by Steam Group Extension"
 #define SMEXT_CONF_DESCRIPTION	"Block non-members of a Steam group from joining"
 #define SMEXT_CONF_VERSION		"1.0.0.0"
 #define SMEXT_CONF_AUTHOR		"LAN of DOOM"
