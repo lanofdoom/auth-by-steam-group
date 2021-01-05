@@ -80,8 +80,9 @@ std::string BuildQueryUrl(const std::string& network_id,
 
 void CheckUserThread(IPluginContext* context,
                      std::unique_ptr<IWebTransfer> web_transfer,
-                     std::string network_id, std::string group_id,
-                     std::string steam_key, funcid_t not_a_member_callback) {
+                     int client_id, std::string network_id,
+                     std::string group_id, std::string steam_key,
+                     funcid_t not_a_member_callback) {
   web_transfer->SetFailOnHTTPError(true);
 
   std::string query_url = BuildQueryUrl(network_id, steam_key);
@@ -101,24 +102,24 @@ void CheckUserThread(IPluginContext* context,
     return;
   }
 
-  func->PushString(network_id.c_str());
+  func->PushCell(client_id);
   func->Execute(nullptr);
 }
 
 cell_t CheckUser(IPluginContext* context, const cell_t* params) {
   char* network_id;
-  context->LocalToString(params[1], &network_id);
+  context->LocalToString(params[2], &network_id);
 
   char* group_id;
-  context->LocalToString(params[2], &group_id);
+  context->LocalToString(params[3], &group_id);
 
   char* steam_key;
-  context->LocalToString(params[3], &steam_key);
+  context->LocalToString(params[4], &steam_key);
 
   std::unique_ptr<std::thread> thread =
       ke::NewThread("CheckGroupMembershipThread", CheckUserThread,
                     std::unique_ptr<IWebTransfer>(g_webternet->CreateSession()),
-                    network_id, group_id, steam_key, params[4]);
+                    network_id, group_id, steam_key, params[5]);
   thread->detach();
 
   return 0;
