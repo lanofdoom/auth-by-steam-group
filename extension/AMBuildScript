@@ -185,7 +185,10 @@ class ExtensionConfig(object):
       '-Wno-overloaded-virtual',
       '-fvisibility-inlines-hidden',
     ]
-    cxx.linkflags += ['-m32']
+    cxx.linkflags += [
+       '-m32',
+       '-static-libstdc++'
+    ]
 
     have_gcc = cxx.vendor == 'gcc'
     have_clang = cxx.vendor == 'clang'
