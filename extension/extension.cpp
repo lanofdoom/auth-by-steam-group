@@ -78,11 +78,11 @@ std::string BuildQueryUrl(const std::string& network_id,
   return url;
 }
 
-void CheckUserThread(IPluginContext* context,
-                     std::unique_ptr<IWebTransfer> web_transfer,
+void CheckUserThread(IPluginContext* context, IWebTransfer* web_transfer_raw,
                      int client_id, std::string network_id,
                      std::string group_id, std::string steam_key,
                      funcid_t not_a_member_callback) {
+  std::unique_ptr<IWebTransfer> web_transfer(web_transfer_raw);
   web_transfer->SetFailOnHTTPError(true);
 
   std::string query_url = BuildQueryUrl(network_id, steam_key);
@@ -117,9 +117,10 @@ cell_t CheckUser(IPluginContext* context, const cell_t* params) {
   context->LocalToString(params[4], &steam_key);
 
   std::unique_ptr<std::thread> thread =
-      ke::NewThread("CheckGroupMembershipThread", CheckUserThread,
-                    std::unique_ptr<IWebTransfer>(g_webternet->CreateSession()),
-                    network_id, group_id, steam_key, params[5]);
+      ke::NewThread("CheckGroupMembershipThread", CheckUserThread, context,
+                    g_webternet->CreateSession(), params[1],
+                    std::string(network_id), std::string(group_id),
+                    std::string(steam_key), static_cast<funcid_t>(params[5]));
   thread->detach();
 
   return 0;
