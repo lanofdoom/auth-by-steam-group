@@ -15,6 +15,6 @@ bash sourcemod/tools/checkout-deps.sh
 cd sourcemod
 mkdir build
 cd build
-python ../configure.py
+CC=clang CXX=clang++ python ../configure.py
 ambuild
 cd ../..
