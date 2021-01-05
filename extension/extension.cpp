@@ -13,7 +13,6 @@ namespace {
 IWebternet* g_webternet = nullptr;
 
 AuthBySteamGroup g_auth_by_steam_group;
-SMEXT_LINK(&g_auth_by_steam_group);
 
 class StringTransferHandler : public ITransferHandler {
  public:
@@ -147,3 +146,5 @@ bool AuthBySteamGroup::QueryRunning(char* error, size_t maxlength) {
   SM_CHECK_IFACE(WEBTERNET, g_webternet);
   return true;
 }
+
+SMEXT_LINK(&g_auth_by_steam_group);
