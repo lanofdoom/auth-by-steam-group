@@ -1,9 +1,7 @@
 #include "extension.h"
 
 #include <IWebternet.h>
-#include <amtl/am-thread.h>
 
-#include <mutex>
 #include <memory>
 #include <set>
 #include <string>
@@ -11,8 +9,6 @@
 
 namespace {
 
-std::mutex g_on_not_a_member_mutex;
-IForward *g_on_not_a_member = nullptr;
 IWebternet* g_webternet = nullptr;
 
 AuthBySteamGroup g_auth_by_steam_group;
@@ -80,33 +76,6 @@ std::string BuildQueryUrl(const std::string& network_id,
   return url;
 }
 
-void CheckUserThread(IPluginContext* context, IWebTransfer* web_transfer_raw,
-                     int client_id, std::string network_id,
-                     std::string group_id, std::string steam_key) {
-  std::unique_ptr<IWebTransfer> web_transfer(web_transfer_raw);
-  web_transfer->SetFailOnHTTPError(true);
-
-  std::string query_url = BuildQueryUrl(network_id, steam_key);
-
-  StringTransferHandler transfer_handler;
-  if (!web_transfer->Download(query_url.c_str(), &transfer_handler, nullptr)) {
-    return;
-  }
-
-  std::set<std::string> group_ids = ParseGroupIds(transfer_handler.data());
-  if (group_ids.count(group_id) != 0) {
-    return;
-  }
-
-  const std::lock_guard<std::mutex> lock(g_on_not_a_member_mutex);
-  if (!g_on_not_a_member) {
-    return;
-  }
-
-  g_on_not_a_member->PushCell(client_id);
-  g_on_not_a_member->Execute(nullptr);
-}
-
 cell_t CheckUser(IPluginContext* context, const cell_t* params) {
   char* network_id;
   context->LocalToString(params[2], &network_id);
@@ -117,14 +86,22 @@ cell_t CheckUser(IPluginContext* context, const cell_t* params) {
   char* steam_key;
   context->LocalToString(params[4], &steam_key);
 
-  std::unique_ptr<std::thread> thread =
-      ke::NewThread("CheckGroupMembershipThread", CheckUserThread, context,
-                    g_webternet->CreateSession(), params[1],
-                    std::string(network_id), std::string(group_id),
-                    std::string(steam_key));
-  thread->detach();
+  std::unique_ptr<IWebTransfer> web_transfer(g_webternet->CreateSession());
+  web_transfer->SetFailOnHTTPError(true);
 
-  return 0;
+  std::string query_url = BuildQueryUrl(network_id, steam_key);
+
+  StringTransferHandler transfer_handler;
+  if (!web_transfer->Download(query_url.c_str(), &transfer_handler, nullptr)) {
+    return true;
+  }
+
+  std::set<std::string> group_ids = ParseGroupIds(transfer_handler.data());
+  if (group_ids.count(group_id) != 0) {
+    return true;
+  }
+
+  return false;
 }
 
 const sp_nativeinfo_t g_natives[] = {
@@ -142,21 +119,11 @@ bool AuthBySteamGroup::SDK_OnLoad(char* error, size_t maxlen, bool late) {
 void AuthBySteamGroup::SDK_OnAllLoaded() {
   SM_GET_LATE_IFACE(WEBTERNET, g_webternet);
   sharesys->AddNatives(myself, g_natives);
-
-  const std::lock_guard<std::mutex> lock(g_on_not_a_member_mutex);
-  g_on_not_a_member = forwards->CreateForward("AuthBySteamGroup_NotAMember",
-                                              ET_Event, 1, nullptr, Param_Cell);
 }
 
 bool AuthBySteamGroup::QueryRunning(char* error, size_t maxlength) {
   SM_CHECK_IFACE(WEBTERNET, g_webternet);
   return true;
-}
-
-void AuthBySteamGroup::SDK_OnUnload() {
-  const std::lock_guard<std::mutex> lock(g_on_not_a_member_mutex);
-  forwards->ReleaseForward(g_on_not_a_member);
-  g_on_not_a_member = nullptr;
 }
 
 SMEXT_LINK(&g_auth_by_steam_group);

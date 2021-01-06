@@ -12,10 +12,6 @@ public const Plugin myinfo = {
     version = "1.0.0",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
-public void AuthBySteamGroup_NotAMember(int client) {
-  KickClient(client, "You are not on the server's allow list.");
-}
-
 public void OnClientAuthorized(int client, const char[] auth) {
   char group_id[CVAR_MAX_LENGTH];
   GetConVarString(g_steam_group_id, group_id, CVAR_MAX_LENGTH);
@@ -34,7 +30,9 @@ public void OnClientAuthorized(int client, const char[] auth) {
     return;
   }
 
-  AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key);
+  if (!AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key)) {
+    KickClient(client, "You are not on the server's allow list.");
+  }
 }
 
 public void OnPluginStart() {
