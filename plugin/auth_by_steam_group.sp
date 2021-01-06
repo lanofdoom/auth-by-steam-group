@@ -12,28 +12,29 @@ public const Plugin myinfo = {
     version = "1.0.0.0",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
-void KickUnauthorizedUser(int client_id) {
-  KickClient(client_id, "You are not on the server's allow list.");
+void KickUnauthorizedUser(int client) {
+  KickClient(client, "You are not on the server's allow list.");
 }
 
-void OnJoin(Handle event, const char[] unused_name,
-            bool unused_dont_broadcast) {
+public void OnClientAuthorized(int client, const char[] auth) {
   char group_id[CVAR_MAX_LENGTH];
   GetConVarString(g_steam_group_id, group_id, CVAR_MAX_LENGTH);
-
-  char steam_key[CVAR_MAX_LENGTH];
-  GetConVarString(g_steam_key, steam_key, CVAR_MAX_LENGTH);
-
-  int client_id = GetEventInt(event, "userid");
-
-  char network_id[CVAR_MAX_LENGTH];
-  GetEventString(event, "networkid", network_id, CVAR_MAX_LENGTH, "");
-
-  if (!strlen(group_id) || !strlen(steam_key) || !strlen(network_id)) {
+  if (!strlen(group_id)) {
     return;
   }
 
-  AuthBySteamGroup_CheckUser(client_id, network_id, group_id, steam_key,
+  char steam_key[CVAR_MAX_LENGTH];
+  GetConVarString(g_steam_key, steam_key, CVAR_MAX_LENGTH);
+  if (!strlen(steam_key)) {
+    return;
+  }
+
+  char steam_id[CVAR_MAX_LENGTH];
+  if (!GetClientAuthId(client, AuthId_SteamID64, steam_id, CVAR_MAX_LENGTH)) {
+    return;
+  }
+
+  AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key,
                              KickUnauthorizedUser);
 }
 
@@ -48,5 +49,4 @@ public void OnPluginStart() {
                              "empty or invalid, all players are allowed to " ...
                              "join.",
                              FCVAR_NOTIFY);
-  HookEvent("player_connect", OnJoin);
 }
