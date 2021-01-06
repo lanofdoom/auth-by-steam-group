@@ -12,7 +12,7 @@ public const Plugin myinfo = {
     version = "1.0.0",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
-void AuthBySteamGroup_NotAMember(int client) {
+public void AuthBySteamGroup_NotAMember(int client) {
   KickClient(client, "You are not on the server's allow list.");
 }
 
