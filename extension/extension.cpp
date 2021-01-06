@@ -82,8 +82,7 @@ std::string BuildQueryUrl(const std::string& network_id,
 
 void CheckUserThread(IPluginContext* context, IWebTransfer* web_transfer_raw,
                      int client_id, std::string network_id,
-                     std::string group_id, std::string steam_key,
-                     funcid_t not_a_member_callback) {
+                     std::string group_id, std::string steam_key) {
   std::unique_ptr<IWebTransfer> web_transfer(web_transfer_raw);
   web_transfer->SetFailOnHTTPError(true);
 
