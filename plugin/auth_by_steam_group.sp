@@ -9,10 +9,10 @@ Handle g_steam_key;
 public const Plugin myinfo = {
     name = "Authenticate by Steam Group Plugin", author = "LAN of DOOM",
     description = "Block non-members of a Steam group from joining",
-    version = "1.0.0.0",
+    version = "1.0.0",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
-void KickUnauthorizedUser(int client) {
+void AuthBySteamGroup_NotAMember(int client) {
   KickClient(client, "You are not on the server's allow list.");
 }
 
@@ -34,8 +34,7 @@ public void OnClientAuthorized(int client, const char[] auth) {
     return;
   }
 
-  AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key,
-                             KickUnauthorizedUser);
+  AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key);
 }
 
 public void OnPluginStart() {

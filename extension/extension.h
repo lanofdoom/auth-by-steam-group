@@ -8,6 +8,7 @@ public:
   virtual bool SDK_OnLoad(char *error, size_t maxlen, bool late);
   virtual void SDK_OnAllLoaded();
   virtual bool QueryRunning(char *error, size_t maxlength);
+  virtual void SDK_OnUnload();
 };
 
 #endif // _AUTH_BY_STEAM_GROUP_EXTENSION_EXTENSION_
