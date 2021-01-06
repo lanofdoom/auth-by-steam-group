@@ -145,7 +145,7 @@ void AuthBySteamGroup::SDK_OnAllLoaded() {
 
   const std::lock_guard<std::mutex> lock(g_on_not_a_member_mutex);
   g_on_not_a_member = forwards->CreateForward("AuthBySteamGroup_NotAMember",
-                                              ET_Event, 0, nullptr, Param_Cell);
+                                              ET_Event, 1, nullptr, Param_Cell);
 }
 
 bool AuthBySteamGroup::QueryRunning(char* error, size_t maxlength) {
