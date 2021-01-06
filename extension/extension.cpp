@@ -3,6 +3,7 @@
 #include <IWebternet.h>
 #include <amtl/am-thread.h>
 
+#include <mutex>
 #include <memory>
 #include <set>
 #include <string>
@@ -10,6 +11,8 @@
 
 namespace {
 
+std::mutex g_on_not_a_member_mutex;
+IForward *g_on_not_a_member = nullptr;
 IWebternet* g_webternet = nullptr;
 
 AuthBySteamGroup g_auth_by_steam_group;
@@ -96,13 +99,13 @@ void CheckUserThread(IPluginContext* context, IWebTransfer* web_transfer_raw,
     return;
   }
 
-  IPluginFunction* func = context->GetFunctionById(not_a_member_callback);
-  if (func == nullptr) {
+  const std::lock_guard<std::mutex> lock(g_on_not_a_member_mutex);
+  if (!g_on_not_a_member) {
     return;
   }
 
-  func->PushCell(client_id);
-  func->Execute(nullptr);
+  g_on_not_a_member->PushCell(client_id);
+  g_on_not_a_member->Execute(nullptr);
 }
 
 cell_t CheckUser(IPluginContext* context, const cell_t* params) {
@@ -140,11 +143,21 @@ bool AuthBySteamGroup::SDK_OnLoad(char* error, size_t maxlen, bool late) {
 void AuthBySteamGroup::SDK_OnAllLoaded() {
   SM_GET_LATE_IFACE(WEBTERNET, g_webternet);
   sharesys->AddNatives(myself, g_natives);
+
+  const std::lock_guard<std::mutex> lock(g_on_not_a_member_mutex);
+  g_on_not_a_member = forwards->CreateForward("AuthBySteamGroup_NotAMember",
+                                              ET_Event, 0, nullptr, Param_Cell);
 }
 
 bool AuthBySteamGroup::QueryRunning(char* error, size_t maxlength) {
   SM_CHECK_IFACE(WEBTERNET, g_webternet);
   return true;
+}
+
+void bool AuthBySteamGroup::SDK_OnUnload() {
+  const std::lock_guard<std::mutex> lock(g_on_not_a_member_mutex);
+  forwards->ReleaseForward(g_on_not_a_member);
+  g_on_not_a_member = nullptr;
 }
 
 SMEXT_LINK(&g_auth_by_steam_group);
