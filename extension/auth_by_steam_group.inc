@@ -3,7 +3,7 @@
  *
  * @param client_id	         The client id of the user checked.
  */
-forward AuthBySteamGroup_NotAMember(int client_id);
+forward void AuthBySteamGroup_NotAMember(int client_id);
 
 /**
  * Verifies that the user is a member of the steam group. If not, the 
