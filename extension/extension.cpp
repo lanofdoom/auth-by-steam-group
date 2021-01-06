@@ -154,7 +154,7 @@ bool AuthBySteamGroup::QueryRunning(char* error, size_t maxlength) {
   return true;
 }
 
-void bool AuthBySteamGroup::SDK_OnUnload() {
+void AuthBySteamGroup::SDK_OnUnload() {
   const std::lock_guard<std::mutex> lock(g_on_not_a_member_mutex);
   forwards->ReleaseForward(g_on_not_a_member);
   g_on_not_a_member = nullptr;
