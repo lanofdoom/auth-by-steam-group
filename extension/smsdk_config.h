@@ -12,7 +12,4 @@
 
 #define SMEXT_LINK(name) SDKExtension *g_pExtensionIface = name;
 
-// Enable Forward Creation
-#define SMEXT_ENABLE_FORWARDSYS
-
 #endif // _AUTH_BY_STEAM_GROUP_EXTENSION_SMSDK_CONFIG_
