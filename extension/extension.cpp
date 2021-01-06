@@ -73,7 +73,7 @@ std::set<std::string> ParseGroupIds(const std::string& response) {
 std::string BuildQueryUrl(const std::string& network_id,
                           const std::string& steam_key) {
   std::string url =
-      "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?steamid=";
+      "http://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?steamid=";
   url += network_id;
   url += "&key=";
   url += steam_key;
