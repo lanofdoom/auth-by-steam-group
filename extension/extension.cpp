@@ -121,7 +121,7 @@ cell_t CheckUser(IPluginContext* context, const cell_t* params) {
       ke::NewThread("CheckGroupMembershipThread", CheckUserThread, context,
                     g_webternet->CreateSession(), params[1],
                     std::string(network_id), std::string(group_id),
-                    std::string(steam_key), static_cast<funcid_t>(params[5]));
+                    std::string(steam_key));
   thread->detach();
 
   return 0;
