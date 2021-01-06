@@ -42,8 +42,8 @@ public void OnPluginStart() {
                    "empty, all players are allowed to join",
                    FCVAR_NOTIFY);
   g_steam_key = CreateConVar("sm_auth_by_steam_group_steam_key", "",
-                             "The steam key to use for API lookups. If " 
-                             "empty or invalid, all players are allowed to " 
+                             "The steam key to use for API lookups. If " ...
+                             "empty or invalid, all players are allowed to " ...
                              "join.",
                              FCVAR_NOTIFY);
 }
