@@ -37,13 +37,13 @@ public void OnClientAuthorized(int client, const char[] auth) {
 
 public void OnPluginStart() {
   g_steam_group_id =
-      CreateConVar("sm_auth_by_steam_group_id", "",
+      CreateConVar("sm_auth_by_steam_group_group_id", "",
                    "The ID of the steam group to allow on the server. If " ...
                    "empty, all players are allowed to join",
                    FCVAR_NOTIFY);
-  g_steam_key = CreateConVar("sm_auth_by_steam_steam_key", "",
-                             "The steam key to use for API lookups. If " ...
-                             "empty or invalid, all players are allowed to " ...
+  g_steam_key = CreateConVar("sm_auth_by_steam_group_steam_key", "",
+                             "The steam key to use for API lookups. If " 
+                             "empty or invalid, all players are allowed to " 
                              "join.",
                              FCVAR_NOTIFY);
 }
