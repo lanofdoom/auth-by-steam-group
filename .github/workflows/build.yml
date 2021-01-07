@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: apt-get install clang lib32stdc++-7-dev lib32z1-dev libc6-dev-i386 linux-libc-dev g++-multilib python
+
+      - name: Package maps
+        run: ./build.sh
+
+      - name: Upload maps
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          path: build/dist/
+
+      - name: Deploy tarball
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages
+          FOLDER: build/dist
+          TARGET_FOLDER: releases/nightly
