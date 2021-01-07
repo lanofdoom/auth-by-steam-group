@@ -13,10 +13,10 @@ jobs:
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install clang lib32stdc++-7-dev lib32z1-dev libc6-dev-i386 linux-libc-dev g++-multilib python
 
-      - name: Package maps
-        run: ./build.sh
+      - name: Build
+        run: PATH=/home/runner/.local/bin:$PATH ./build.sh
 
-      - name: Upload maps
+      - name: Upload artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
           path: build/dist/
