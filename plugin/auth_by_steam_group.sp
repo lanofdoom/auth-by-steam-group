@@ -12,6 +12,12 @@ public const Plugin myinfo = {
     version = "1.0.0",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
+public Extension __ext_auth_by_steam_group = {
+	name = "Authenticate by Steam Group Extension",
+	file = "auth_by_steam_group.ext",
+	autoload = 1,
+	required = 1};
+
 public void OnClientAuthorized(int client, const char[] auth) {
   char group_id[CVAR_MAX_LENGTH];
   GetConVarString(g_steam_group_id, group_id, CVAR_MAX_LENGTH);
