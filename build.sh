@@ -12,9 +12,12 @@ mkdir -p alliedmodders
 cd alliedmodders
 git clone --recursive https://github.com/alliedmodders/sourcemod
 bash sourcemod/tools/checkout-deps.sh
-cd sourcemod
-mkdir build
-cd build
-CC=clang CXX=clang++ python ../configure.py
-ambuild
-cd ../..
+
+cd ../extension
+./build.sh
+cd ../plugin
+./build.sh
+cd ../build
+
+tar -czf auth_by_source_id.tar.gz addons
+cd ..
