@@ -14,7 +14,7 @@ curl $tools -o $tmp_dir/tools.tar.gz
 tar -xf $tmp_dir/tools.tar.gz -C $tmp_dir
 $tmp_dir/addons/sourcemod/scripting/spcomp auth_by_steam_group.sp
 
-mkdir -p ../build/addons/plugins
-mv auth_by_steam_group.smx ../build/addons/plugins/auth_by_steam_group.smx
+mkdir -p ../build/addons/sourcemod/plugins
+mv auth_by_steam_group.smx ../build/addons/sourcemod/plugins/auth_by_steam_group.smx
 
 echo built auth_by_steam_group.smx
