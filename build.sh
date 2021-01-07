@@ -17,7 +17,13 @@ cd ../extension
 ./build.sh
 cd ../plugin
 ./build.sh
-cd ../build
+cd ..
 
-tar -czf auth_by_source_id.tar.gz addons
+tar -czf auth_by_steam_group_source.tar.gz extension plugin build.sh LICENSE README.md
+
+cd build
+tar -czf auth_by_steam_group.tar.gz addons
+mkdir -p dist
+mv auth_by_steam_group.tar.gz dist/auth_by_steam_group.tar.gz
+mv ../auth_by_steam_group_source.tar.gz dist/auth_by_steam_group_source.tar.gz
 cd ..
