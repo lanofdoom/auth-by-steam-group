@@ -5,7 +5,7 @@
 #
 # Required Packages:
 # clang lib32stdc++-7-dev lib32z1-dev libc6-dev-i386 linux-libc-dev g++-multilib
-# python (python2)
+# python (python2) libcurl4-openssl-dev:i386
 #
 # Copied from https://wiki.alliedmods.net/Building_SourceMod
 mkdir -p alliedmodders
