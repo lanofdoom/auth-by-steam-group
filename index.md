@@ -4,8 +4,8 @@
 * [Nightly](https://lanofdoom.github.io/auth-by-steam-group/releases/nightly/auth_by_steam_group.tar.gz) ([Source](https://lanofdoom.github.io/auth-by-steam-group/releases/nightly/auth_by_steam_group_source.tar.gz)) 
 
 ## Installation
-1) Install the ``libcurl:i386`` package or its equivalent on your distribution to your server.
-2) Extract ``auth_by_steam_group_source.tar.gz`` in your server's ``css/cstrike`` directory.
+1.  Install the ``libcurl:i386`` package or its equivalent on your distribution to your server.
+2.  Extract ``auth_by_steam_group_source.tar.gz`` in your server's ``css/cstrike`` directory.
 
 Note, servers with ``sv_lan 1`` are not compatible with Steam Group authentication and will allow all users to join regardless of how the plugin or its cvars are configured.
 
