@@ -10,8 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Enable i386 packages
+        run: dpkg --add-architecture i386 && sudo apt-get update
+
       - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install clang lib32stdc++-7-dev lib32z1-dev libc6-dev-i386 linux-libc-dev g++-multilib python
+        run: sudo apt-get install clang lib32stdc++-7-dev lib32z1-dev libc6-dev-i386 linux-libc-dev g++-multilib python libcurl4-openssl-dev:i386
 
       - name: Build
         run: PATH=/home/runner/.local/bin:$PATH ./build.sh

@@ -1,6 +1,6 @@
 #include "extension.h"
 
-#include <IWebternet.h>
+#include <i386-linux-gnu/curl/curl.h>
 
 #include <memory>
 #include <set>
@@ -9,26 +9,7 @@
 
 namespace {
 
-IWebternet* g_webternet = nullptr;
-
 AuthBySteamGroup g_auth_by_steam_group;
-
-class StringTransferHandler : public ITransferHandler {
- public:
-  DownloadWriteStatus OnDownloadWrite(IWebTransfer* session, void* userdata,
-                                      void* ptr, size_t size, size_t nmemb) {
-    char* bytes = reinterpret_cast<char*>(ptr);
-    for (size_t i = 0; i < size * nmemb; i++) {
-      m_data.push_back(bytes[i]);
-    }
-    return DownloadWrite_Okay;
-  }
-
-  const std::string& data() { return m_data; }
-
- private:
-  std::string m_data;
-};
 
 // This is a bit of a hack. Instead of properly parsing out the JSON, just
 // break it up into tokens and iterate through them. This should be fine
@@ -69,11 +50,19 @@ std::set<std::string> ParseGroupIds(const std::string& response) {
 std::string BuildQueryUrl(const std::string& network_id,
                           const std::string& steam_key) {
   std::string url =
-      "http://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?steamid=";
+      "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?steamid=";
   url += network_id;
   url += "&key=";
   url += steam_key;
   return url;
+}
+
+size_t write_callback(char *ptr, size_t size, size_t nmemb, void *userdata) {
+  std::string* data = reinterpret_cast<std::string*>(userdata);
+  for (size_t i = 0; i < size * nmemb; i++) {
+    data->push_back(ptr[i]);
+  }
+  return size * nmemb;
 }
 
 cell_t CheckUser(IPluginContext* context, const cell_t* params) {
@@ -86,20 +75,56 @@ cell_t CheckUser(IPluginContext* context, const cell_t* params) {
   char* steam_key;
   context->LocalToString(params[4], &steam_key);
 
-  std::unique_ptr<IWebTransfer> web_transfer(g_webternet->CreateSession());
-  web_transfer->SetFailOnHTTPError(true);
+  CURL* curl = curl_easy_init();
+  if (curl == nullptr) {
+    return true;
+  }
+
+  CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return true;
+  }
+
+  std::string data;
+  code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return true;
+  }
 
   std::string query_url = BuildQueryUrl(network_id, steam_key);
-
-  StringTransferHandler transfer_handler;
-  if (!web_transfer->Download(query_url.c_str(), &transfer_handler, nullptr)) {
+  code = curl_easy_setopt(curl, CURLOPT_URL, query_url.c_str());
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
     return true;
   }
 
-  std::set<std::string> group_ids = ParseGroupIds(transfer_handler.data());
+  code = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return true;
+  }
+
+  code = curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return true;
+  }
+
+  code = curl_easy_perform(curl);
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return true;
+  }
+
+  std::set<std::string> group_ids = ParseGroupIds(data);
   if (group_ids.count(group_id) != 0) {
+    curl_easy_cleanup(curl);
     return true;
   }
+
+  curl_easy_cleanup(curl);
 
   return false;
 }
@@ -111,19 +136,8 @@ const sp_nativeinfo_t g_natives[] = {
 
 }  // namespace
 
-bool AuthBySteamGroup::SDK_OnLoad(char* error, size_t maxlen, bool late) {
-  sharesys->AddDependency(myself, "webternet.ext", true, true);
-  return true;
-}
-
 void AuthBySteamGroup::SDK_OnAllLoaded() {
-  SM_GET_LATE_IFACE(WEBTERNET, g_webternet);
   sharesys->AddNatives(myself, g_natives);
-}
-
-bool AuthBySteamGroup::QueryRunning(char* error, size_t maxlength) {
-  SM_CHECK_IFACE(WEBTERNET, g_webternet);
-  return true;
 }
 
 SMEXT_LINK(&g_auth_by_steam_group);

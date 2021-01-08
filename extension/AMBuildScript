@@ -187,7 +187,8 @@ class ExtensionConfig(object):
     ]
     cxx.linkflags += [
        '-m32',
-       '-static-libstdc++'
+       '-static-libstdc++',
+       '-lcurl'
     ]
 
     have_gcc = cxx.vendor == 'gcc'
