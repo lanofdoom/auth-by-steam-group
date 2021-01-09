@@ -37,7 +37,7 @@ public void OnClientAuthorized(int client, const char[] auth) {
   }
 
   if (!AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key)) {
-    KickClient(client, "You are not on the server's allow list.");
+    KickClient(client, "You are not on the server's allowlist.");
   }
 }
 
