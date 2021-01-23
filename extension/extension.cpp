@@ -16,7 +16,7 @@ std::vector<std::string> Tokenize(const std::string& value,
   std::vector<std::string> tokens;
 
   bool new_token = true;
-  for (char c : response) {
+  for (char c : value) {
     if (delims.find(c) != std::string::npos) {
       new_token = true;
     } else {
