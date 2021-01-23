@@ -11,13 +11,10 @@ namespace {
 
 AuthBySteamGroup g_auth_by_steam_group;
 
-// This is a bit of a hack. Instead of properly parsing out the JSON, just
-// break it up into tokens and iterate through them. This should be fine
-// given the simplicity of the response, but this is worth fixing at some point.
-std::set<std::string> ParseGroupIds(const std::string& response) {
-  const static std::string delims = "{}[]:\",";
-
+std::vector<std::string> Tokenize(const std::string& value,
+                                  const std::string& delims) {
   std::vector<std::string> tokens;
+
   bool new_token = true;
   for (char c : response) {
     if (delims.find(c) != std::string::npos) {
@@ -30,6 +27,15 @@ std::set<std::string> ParseGroupIds(const std::string& response) {
       new_token = false;
     }
   }
+
+  return tokens;
+}
+
+// This is a bit of a hack. Instead of properly parsing out the JSON, just
+// break it up into tokens and iterate through them. This should be fine
+// given the simplicity of the response, but this is worth fixing at some point.
+std::set<std::string> ParseGroupIds(const std::string& response) {
+  std::vector<std::string> tokens = Tokenize(response, "{}[]:\",");
 
   std::set<std::string> result;
   bool next_is_gid = false;
@@ -118,10 +124,12 @@ cell_t CheckUser(IPluginContext* context, const cell_t* params) {
     return true;
   }
 
-  std::set<std::string> group_ids = ParseGroupIds(data);
-  if (group_ids.count(group_id) != 0) {
-    curl_easy_cleanup(curl);
-    return true;
+  std::set<std::string> client_group_ids = ParseGroupIds(data);
+  for (const auto& allowed_group : Tokenize(group_id, ",")) {
+    if (client_group_ids.count(allowed_group) != 0) {
+      curl_easy_cleanup(curl);
+      return true;
+    }
   }
 
   curl_easy_cleanup(curl);

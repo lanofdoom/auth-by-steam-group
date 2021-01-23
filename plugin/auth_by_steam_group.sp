@@ -1,7 +1,7 @@
 #include <sourcemod>
 #include "../extension/auth_by_steam_group.inc"
 
-#define CVAR_MAX_LENGTH 255
+#define CVAR_MAX_LENGTH 256
 
 Handle g_steam_group_id;
 Handle g_steam_key;
@@ -9,7 +9,7 @@ Handle g_steam_key;
 public const Plugin myinfo = {
     name = "Authenticate by Steam Group Plugin", author = "LAN of DOOM",
     description = "Block non-members of a Steam group from joining",
-    version = "1.0.1",
+    version = "1.1.0",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
 public Extension __ext_auth_by_steam_group = {
@@ -44,11 +44,12 @@ public void OnClientAuthorized(int client, const char[] auth) {
 public void OnPluginStart() {
   g_steam_group_id =
       CreateConVar("sm_auth_by_steam_group_group_id", "",
-                   "The ID of the steam group to allow on the server. If " ...
-                   "empty, all players are allowed to join.",
+                   "A comma-separated list of IDs of the Steam groups " ...
+                   "allowed to join the server. If empty, all players are " ...
+                   "allowed to join.",
                    FCVAR_NOTIFY);
   g_steam_key = CreateConVar("sm_auth_by_steam_group_steam_key", "",
-                             "The steam key to use for API lookups. If " ...
+                             "The Steam key to use for API lookups. If " ...
                              "empty or invalid, all players are allowed to " ...
                              "join.",
                              FCVAR_NOTIFY);
