@@ -1,8 +1,11 @@
 #include <sourcemod>
+
+#include "adt_array.inc"
 #include "../extension/auth_by_steam_group.inc"
 
 #define CVAR_MAX_LENGTH 256
 
+ArrayList g_allowed_clients;
 bool g_allow_next_access = false;
 Handle g_allow_access_enabled;
 Handle g_steam_group_id;
@@ -11,7 +14,7 @@ Handle g_steam_key;
 public const Plugin myinfo = {
     name = "Authenticate by Steam Group Plugin", author = "LAN of DOOM",
     description = "Block non-members of a Steam group from joining",
-    version = "1.2.0",
+    version = "1.2.1",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
 public Extension __ext_auth_by_steam_group = {
@@ -20,7 +23,7 @@ public Extension __ext_auth_by_steam_group = {
   autoload = 1,
   required = 1};
 
-bool CheckUser(int client) {
+bool CheckUserInGroup(int client) {
   char group_id[CVAR_MAX_LENGTH];
   GetConVarString(g_steam_group_id, group_id, CVAR_MAX_LENGTH);
   if (!strlen(group_id)) {
@@ -41,12 +44,21 @@ bool CheckUser(int client) {
   return AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key);
 }
 
-public void OnClientAuthorized(int client, const char[] auth) {
-  if (!CheckUser(client)) {
-    if (!g_allow_next_access) {
-      KickClient(client, "You are not on the server's allowlist");
-    }
+bool CheckUserAllowedAccess(int client) {
+  char steam_id[CVAR_MAX_LENGTH];
+  if (!GetClientAuthId(client, AuthId_SteamID64, steam_id, CVAR_MAX_LENGTH)) {
+    return true;
+  }
 
+  if (g_allowed_clients.FindString(steam_id) != -1) {
+    return true;
+  }
+
+  if (!CheckUserInGroup(client) && !g_allow_next_access) {
+    return false;
+  }
+
+  if (g_allow_next_access) {
     char client_name[MAX_NAME_LENGTH];
     if (GetClientName(client, client_name, MAX_NAME_LENGTH)) {
       PrintToChatAll("%s was granted access", client_name);
@@ -54,7 +66,16 @@ public void OnClientAuthorized(int client, const char[] auth) {
       PrintToChatAll("An unauthorized user was granted access");
     }
 
+    g_allowed_clients.PushString(steam_id);
     g_allow_next_access = false;
+  }
+
+  return true;
+}
+
+public void OnClientAuthorized(int client, const char[] auth) {
+  if (!CheckUserAllowedAccess(client)) {
+    KickClient(client, "You are not on the server's allowlist");
   }
 }
 
@@ -65,7 +86,7 @@ public void OnClientSayCommand_Post(int client, const char[] command,
     return;
   }
 
-  if (!CheckUser(client)) {
+  if (!CheckUserInGroup(client)) {
     PrintToChat(client, "You are not authorized to use that command");
     return;
   }
@@ -73,6 +94,20 @@ public void OnClientSayCommand_Post(int client, const char[] command,
   PrintToChatAll("The next unauthorized user that attempts to join will be " ...
                  "allowed access");
   g_allow_next_access = true;
+}
+
+public void OnMapEnd() {
+  g_allowed_clients.Clear();
+  for (int client = 1; client <= MaxClients; client++) {
+    if (IsClientInGame(client)) {
+      char auth[CVAR_MAX_LENGTH];
+      if (!GetClientAuthId(client, AuthId_SteamID64, auth, CVAR_MAX_LENGTH)) {
+        PrintToServer("GetClientAuthId failed for client %d", client);
+        continue;
+      }
+      g_allowed_clients.PushString(auth);
+    }
+  }
 }
 
 public void OnPluginStart() {
