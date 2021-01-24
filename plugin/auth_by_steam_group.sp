@@ -114,6 +114,8 @@ public void OnMapStart() {
 }
 
 public void OnPluginStart() {
+  g_this_round_allowed_clients = new ArrayList(CVAR_MAX_LENGTH);
+  g_last_round_allowed_clients = new ArrayList(CVAR_MAX_LENGTH);
   g_allow_access_enabled =
       CreateConVar("sm_auth_by_steam_allowaccess_enabled", "",
                    "If true, members of the authorized group can say " ...
