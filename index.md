@@ -10,11 +10,14 @@
 Note, servers with ``sv_lan 1`` are not compatible with Steam Group authentication and will allow all users to join regardless of how the plugin or its cvars are configured.
 
 ## Console Variables
-``sm_auth_by_steam_group_group_id`` Sets the ID of the group from which players are allowed to join. If empty, all players are allowed to join. Default value is empty.
+``sm_auth_by_steam_group_group_id`` A comma-separated list of the ID of the Steam groups whose members are allowed to join the server. If empty, all players are allowed to join. Default value is empty.
 
 ``sm_auth_by_steam_group_steam_key`` Sets the [Steam API key](https://steamcommunity.com/dev/apikey) for used for the group membership lookups. If empty, all players are allowed to join. Default value is empty.
 
 ## Version History
+
+### 1.1.0 ([Download](https://lanofdoom.github.io/auth-by-steam-group/releases/v1.1.0/auth_by_steam_group.tar.gz)) ([Source](https://lanofdoom.github.io/auth-by-steam-group/releases/v1.1.0/auth_by_steam_group_source.tar.gz)) 
+* Enables `sm_auth_by_steam_group_steam_key` to be a comma-separated list of Steam group IDs. 
 
 ### 1.0.1 ([Download](https://lanofdoom.github.io/auth-by-steam-group/releases/v1.0.1/auth_by_steam_group.tar.gz)) ([Source](https://lanofdoom.github.io/auth-by-steam-group/releases/v1.0.1/auth_by_steam_group_source.tar.gz)) 
 * Punctuation and wording fixes
