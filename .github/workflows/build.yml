@@ -20,7 +20,9 @@ jobs:
         run: wget https://bootstrap.pypa.io/2.7/get-pip.py && python2 ./get-pip.py
 
       - name: Build
-        run: PATH=/home/runner/.local/bin:$PATH ./build.sh
+        run: |
+          export PATH="/home/runner/.local/bin:$PATH"
+          ./build.sh
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2.2.1
