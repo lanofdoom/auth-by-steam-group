@@ -7,6 +7,7 @@
 
 ArrayList g_allowed_clients;
 bool g_allow_next_access = false;
+Handle g_reset_allow_list_timer;
 Handle g_allow_access_enabled;
 Handle g_steam_group_id;
 Handle g_steam_key;
@@ -96,7 +97,7 @@ public void OnClientSayCommand_Post(int client, const char[] command,
   g_allow_next_access = true;
 }
 
-public void OnMapEnd() {
+Action ResetAllowList(Handle timer) {
   g_allowed_clients.Clear();
   for (int client = 1; client <= MaxClients; client++) {
     if (IsClientInGame(client)) {
@@ -108,6 +109,13 @@ public void OnMapEnd() {
       g_allowed_clients.PushString(auth);
     }
   }
+
+  return Plugin_Stop;
+}
+
+public void OnMapStart() {
+  KillTimer(g_reset_allow_list_timer, true);
+  g_reset_allow_list_timer = CreateTimer(30.0, ResetAllowList);
 }
 
 public void OnPluginStart() {
