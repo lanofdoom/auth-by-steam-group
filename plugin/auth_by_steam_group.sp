@@ -5,9 +5,9 @@
 
 #define CVAR_MAX_LENGTH 256
 
-ArrayList g_allowed_clients;
+ArrayList g_this_round_allowed_clients;
+ArrayList g_last_round_allowed_clients;
 bool g_allow_next_access = false;
-Handle g_reset_allow_list_timer;
 Handle g_allow_access_enabled;
 Handle g_steam_group_id;
 Handle g_steam_key;
@@ -51,7 +51,12 @@ bool CheckUserAllowedAccess(int client) {
     return true;
   }
 
-  if (g_allowed_clients.FindString(steam_id) != -1) {
+  if (g_this_round_allowed_clients.FindString(steam_id) != -1) {
+    return true;
+  }
+
+  if (g_last_round_allowed_clients.FindString(steam_id) != -1) {
+    g_this_round_allowed_clients.PushString(steam_id);
     return true;
   }
 
@@ -67,9 +72,10 @@ bool CheckUserAllowedAccess(int client) {
       PrintToChatAll("An unauthorized user was granted access");
     }
 
-    g_allowed_clients.PushString(steam_id);
     g_allow_next_access = false;
   }
+
+  g_this_round_allowed_clients.PushString(steam_id);
 
   return true;
 }
@@ -97,25 +103,14 @@ public void OnClientSayCommand_Post(int client, const char[] command,
   g_allow_next_access = true;
 }
 
-Action ResetAllowList(Handle timer) {
-  g_allowed_clients.Clear();
-  for (int client = 1; client <= MaxClients; client++) {
-    if (IsClientInGame(client)) {
-      char auth[CVAR_MAX_LENGTH];
-      if (!GetClientAuthId(client, AuthId_SteamID64, auth, CVAR_MAX_LENGTH)) {
-        PrintToServer("GetClientAuthId failed for client %d", client);
-        continue;
-      }
-      g_allowed_clients.PushString(auth);
-    }
-  }
-
-  return Plugin_Stop;
-}
-
 public void OnMapStart() {
-  KillTimer(g_reset_allow_list_timer, true);
-  g_reset_allow_list_timer = CreateTimer(30.0, ResetAllowList);
+  g_last_round_allowed_clients.Clear();
+  for (int i = 0; i < g_this_round_allowed_clients.Length; i++) {
+    char steam_id[CVAR_MAX_LENGTH];
+    g_this_round_allowed_clients.GetString(i, steam_id, CVAR_MAX_LENGTH);
+    g_last_round_allowed_clients.PushString(steam_id);
+  }
+  g_this_round_allowed_clients.Clear();
 }
 
 public void OnPluginStart() {
