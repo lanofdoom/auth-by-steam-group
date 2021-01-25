@@ -9,6 +9,7 @@ ArrayList g_this_round_allowed_clients;
 ArrayList g_last_round_allowed_clients;
 ArrayList g_kickable_player_client_indices;
 ArrayList g_kickable_player_commands;
+ArrayList g_group_members;
 bool g_allow_next_access = false;
 Handle g_allow_access_enabled;
 Handle g_steam_group_id;
@@ -44,7 +45,16 @@ bool CheckUserInGroup(int client) {
     return true;
   }
 
-  return AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key);
+  if (g_group_members.FindString(steam_id) != -1) {
+    return true;
+  }
+
+  if (AuthBySteamGroup_CheckUser(client, steam_id, group_id, steam_key)) {
+    g_group_members.PushString(steam_id);
+    return true;
+  }
+
+  return false;
 }
 
 bool CheckUserAllowedAccess(int client) {
@@ -154,7 +164,9 @@ public void OnClientSayCommand_Post(int client, const char[] command,
     return;
   }
 
-  if (!CheckUserInGroup(client)) {
+  char steam_id[CVAR_MAX_LENGTH];
+  if (!GetClientAuthId(client, AuthId_SteamID64, steam_id, CVAR_MAX_LENGTH) ||
+      g_group_members.FindString(steam_id) == -1) {
     PrintToChat(client, "You are not authorized to use that command.");
     return;
   }
@@ -174,13 +186,13 @@ public void OnClientSayCommand_Post(int client, const char[] command,
       PrintToChatAll("Player kicked");
     }
 
-    char steam_id[CVAR_MAX_LENGTH];
-    if (GetClientAuthId(to_kick, AuthId_SteamID64, steam_id, CVAR_MAX_LENGTH)) {
-      int delete_index = g_this_round_allowed_clients.FindString(steam_id);
+    char ks_id[CVAR_MAX_LENGTH];
+    if (GetClientAuthId(to_kick, AuthId_SteamID64, ks_id, CVAR_MAX_LENGTH)) {
+      int delete_index = g_this_round_allowed_clients.FindString(ks_id);
       if (delete_index != -1) {
         g_this_round_allowed_clients.Erase(delete_index);
       }
-      delete_index = g_last_round_allowed_clients.FindString(steam_id);
+      delete_index = g_last_round_allowed_clients.FindString(ks_id);
       if (delete_index != -1) {
         g_last_round_allowed_clients.Erase(delete_index);
       }
@@ -203,6 +215,7 @@ public void OnMapStart() {
   g_this_round_allowed_clients.Clear();
   g_kickable_player_client_indices.Clear();
   g_kickable_player_commands.Clear();
+  g_group_members.Clear();
   g_allow_next_access = false;
 }
 
@@ -210,6 +223,7 @@ public void OnPluginStart() {
   g_this_round_allowed_clients = new ArrayList(CVAR_MAX_LENGTH);
   g_last_round_allowed_clients = new ArrayList(CVAR_MAX_LENGTH);
   g_kickable_player_commands = new ArrayList(CVAR_MAX_LENGTH);
+  g_group_members = new ArrayList(CVAR_MAX_LENGTH);
   g_kickable_player_client_indices = new ArrayList(1);
   g_allow_access_enabled =
       CreateConVar("sm_auth_by_steam_allowaccess_enabled", "",
