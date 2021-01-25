@@ -84,9 +84,9 @@ bool CheckUserAllowedAccess(int client) {
   if (g_allow_next_access) {
     char client_name[MAX_NAME_LENGTH];
     if (GetClientName(client, client_name, MAX_NAME_LENGTH)) {
-      PrintToChatAll("%s was granted access", client_name);
+      PrintToChatAll("%s was granted access.", client_name);
     } else {
-      PrintToChatAll("An unauthorized player was granted access");
+      PrintToChatAll("An unauthorized player was granted access.");
     }
 
     PrintToChatAll("If this was not the player you intended to let in, use " ...
@@ -181,9 +181,9 @@ public void OnClientSayCommand_Post(int client, const char[] command,
     int to_kick = g_kickable_player_client_indices.Get(kickable_player_index);
     char kicked_player_name[MAX_NAME_LENGTH];
     if (GetClientName(to_kick, kicked_player_name, MAX_NAME_LENGTH)) {
-      PrintToChatAll("%s was kicked", kicked_player_name);
+      PrintToChatAll("%s was kicked.", kicked_player_name);
     } else {
-      PrintToChatAll("Player kicked");
+      PrintToChatAll("Player kicked.");
     }
 
     char ks_id[CVAR_MAX_LENGTH];
