@@ -79,7 +79,7 @@ public void OnMapStart() {
 
 public void OnPluginStart() {
   g_allow_access_enabled =
-      CreateConVar("sm_auth_by_steam_allowaccess_enabled", "",
+      CreateConVar("sm_auth_by_steam_allowaccess_enabled", "1",
                    "If true, members of the authorized group can say " ...
                    "'allowaccess' in chat to grant acccess to the next " ...
                    "unauthorized player that attempts to join the server.");
