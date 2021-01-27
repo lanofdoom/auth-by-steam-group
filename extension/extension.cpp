@@ -333,6 +333,7 @@ void AuthBySteamGroup::PrintKickListSucceeds(int user_id) {
   if (m_kick_command_to_user_id.empty()) {
     m_game_helpers->TextMsg(requester_client_id, TEXTMSG_DEST_CHAT,
                             "No kickable players.");
+    return;
   }
 
   for (const auto& entry : m_kick_command_to_user_id) {
