@@ -219,6 +219,10 @@ int AuthBySteamGroup::GetUserIdByClientId(int client_id) {
   return game_player->GetUserId();
 }
 
+std::string AuthBySteamGroup::KickCommand(uint64_t steam_id) {
+  return std::string("kickplayer ") + std::to_string(steam_id);
+}
+
 void AuthBySteamGroup::PrintToAll(const std::string& message) {
   int max_clients = m_player_manager->GetMaxClients();
   for (int client_id = 1; client_id <= max_clients; client_id++) {
