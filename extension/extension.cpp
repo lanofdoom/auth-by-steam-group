@@ -421,18 +421,24 @@ void AuthBySteamGroup::AllowAccess(int client_id, std::string group_id,
 void AuthBySteamGroup::CheckAccess(int client_id, std::string group_id,
                                    std::string steam_key) {
   int user_id = GetUserIdByClientId(client_id);
-  auto async_op = std::async([this, user_id, group_id,
-                              steam_key]() -> std::function<void()> {
+
+  auto check_membership = [this, user_id, group_id,
+                           steam_key]() -> std::function<void()> {
     auto is_group_member = CheckGroupMembership(user_id, group_id, steam_key);
     if (!is_group_member.get()) {
       return std::bind(&AuthBySteamGroup::CheckAccessFails, this, user_id);
     }
 
     return std::bind(&AuthBySteamGroup::CheckAccessSucceeds, this, user_id);
-  });
+  };
 
   std::lock_guard<std::mutex> lock(m_plugin_lock);
-  m_async_operations.push_back(std::move(async_op));
+  if (m_player_manager->GetNumPlayers() == 0) {
+    check_membership()();
+    return;
+  }
+
+  m_async_operations.push_back(std::async(std::move(check_membership)));
 }
 
 void AuthBySteamGroup::PrintKickList(int client_id, std::string group_id,
