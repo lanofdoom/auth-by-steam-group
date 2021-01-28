@@ -388,7 +388,7 @@ void AuthBySteamGroup::KickCommandSucceeds(int to_kick_user_id) {
     PrintToAll("Player kicked.");
   }
 
-  player_to_kick->Kick("You have been kicked from the server.");
+  player_to_kick->Kick("You have been kicked from the server");
 }
 
 void AuthBySteamGroup::KickCommandFails(int requester_user_id) {
