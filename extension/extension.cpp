@@ -433,7 +433,7 @@ void AuthBySteamGroup::CheckAccess(int client_id, std::string group_id,
   };
 
   std::lock_guard<std::mutex> lock(m_plugin_lock);
-  if (m_player_manager->GetNumPlayers() == 0) {
+  if (m_player_manager->GetNumPlayers() == 1) {
     check_membership()();
     return;
   }
