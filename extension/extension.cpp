@@ -297,7 +297,7 @@ void AuthBySteamGroup::CheckAccessFails(int user_id) {
 
   std::string kick_command = KickCommand(steam_id64);
 
-  if (m_this_rotation_allowed_steam_ids.count(steam_id64) != 0) {
+  if (m_last_rotation_allowed_steam_ids.count(steam_id64) != 0) {
     m_this_rotation_allowed_steam_ids.insert(steam_id64);
     m_kick_command_to_user_id[kick_command] = user_id;
     return;
