@@ -4,7 +4,7 @@
 
 #define CVAR_MAX_LENGTH 256
 
-Handle g_allow_access_enabled;
+Handle g_allow_join_enabled;
 Handle g_steam_group_id;
 Handle g_steam_key;
 
@@ -50,12 +50,12 @@ public void OnClientSayCommand_Post(int client, const char[] command,
     return;
   }
 
-  if (!GetConVarBool(g_allow_access_enabled)) {
+  if (!GetConVarBool(g_allow_join_enabled)) {
     return;
   }
 
-  if (StrEqual(text, "allowaccess")) {
-    AuthBySteamGroup_AllowAccess(client, group_id, steam_key);
+  if (StrEqual(text, "allowjoin")) {
+    AuthBySteamGroup_AllowJoin(client, group_id, steam_key);
     return;
   }
 
@@ -78,11 +78,11 @@ public void OnMapStart() {
 }
 
 public void OnPluginStart() {
-  g_allow_access_enabled =
-      CreateConVar("sm_auth_by_steam_allowaccess_enabled", "1",
+  g_allow_join_enabled =
+      CreateConVar("sm_auth_by_steam_allowjoin_enabled", "1",
                    "If true, members of the authorized group can say " ...
-                   "'allowaccess' in chat to grant acccess to the next " ...
-                   "unauthorized player that attempts to join the server.");
+                   "'allowjoin' in chat to allow the next unauthorized " ...
+                   "player that attempts to join the server.");
   g_steam_group_id =
       CreateConVar("sm_auth_by_steam_group_group_id", "",
                    "A comma-separated list of IDs of the Steam groups " ...

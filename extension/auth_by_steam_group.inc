@@ -7,7 +7,7 @@
  * @param steam_group_id         The Steam group to check for membership.
  * @param steam_key              The key to use for the Steam API lookups.
  */
-native void AuthBySteamGroup_AllowAccess(
+native void AuthBySteamGroup_AllowJoin(
     int client_id, const char[] steam_group_id, const char[] steam_key);
 
 /**

@@ -13,7 +13,7 @@ Check out the repository, install the dependencies listed in ``build.sh``, and t
 Note, servers with ``sv_lan 1`` are not compatible with Steam Group authentication and will allow all users to join regardless of how the plugin or its cvars are configured.
 
 # Console Variables
-``sm_auth_by_steam_allowaccess_enabled`` If enabled, members of the authorized Steam group can allow access to the next unauthorized user that attempts to join the server by saying `allowaccess` in chat. Default value is enabled.
+``sm_auth_by_steam_allowjoin_enabled`` If enabled, members of the authorized Steam group can allow the next unauthorized user to join the server by saying `allowjoin` in chat. Default value is enabled.
 
 ``sm_auth_by_steam_group_group_id`` Sets the ID of the Steam group from which players are allowed to join. If empty, all players are allowed to join. Default value is empty.
 
