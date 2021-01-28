@@ -238,15 +238,16 @@ std::future<bool> AuthBySteamGroup::CheckGroupMembership(
     int user_id, const std::string& group_id, const std::string& steam_key) {
   auto* game_player = GetPlayerByUserId(user_id);
   if (game_player == nullptr) {
-    return std::async([]() { return true; });
+    return std::async(std::launch::async, []() { return true; });
   }
 
   uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/false);
   if (steam_id64 == 0) {
-    return std::async([]() { return true; });
+    return std::async(std::launch::async, []() { return true; });
   }
 
-  return std::async(CheckGroupMembershipImpl, steam_id64, group_id, steam_key);
+  return std::async(std::launch::async, CheckGroupMembershipImpl, steam_id64,
+                    group_id, steam_key);
 }
 
 void AuthBySteamGroup::AllowAccessSucceeds() {
@@ -404,15 +405,17 @@ void AuthBySteamGroup::KickCommandFails(int requester_user_id) {
 void AuthBySteamGroup::AllowAccess(int client_id, std::string group_id,
                                    std::string steam_key) {
   int user_id = GetUserIdByClientId(client_id);
-  auto async_op = std::async([this, user_id, group_id,
-                              steam_key]() -> std::function<void()> {
-    auto is_group_member = CheckGroupMembership(user_id, group_id, steam_key);
-    if (!is_group_member.get()) {
-      return std::bind(&AuthBySteamGroup::AllowAccessFails, this, user_id);
-    }
+  auto async_op = std::async(
+      std::launch::async,
+      [this, user_id, group_id, steam_key]() -> std::function<void()> {
+        auto is_group_member =
+            CheckGroupMembership(user_id, group_id, steam_key);
+        if (!is_group_member.get()) {
+          return std::bind(&AuthBySteamGroup::AllowAccessFails, this, user_id);
+        }
 
-    return std::bind(&AuthBySteamGroup::AllowAccessSucceeds, this);
-  });
+        return std::bind(&AuthBySteamGroup::AllowAccessSucceeds, this);
+      });
 
   std::lock_guard<std::mutex> lock(m_plugin_lock);
   m_async_operations.push_back(std::move(async_op));
@@ -438,21 +441,26 @@ void AuthBySteamGroup::CheckAccess(int client_id, std::string group_id,
     return;
   }
 
-  m_async_operations.push_back(std::async(std::move(check_membership)));
+  m_async_operations.push_back(
+      std::async(std::launch::async, std::move(check_membership)));
 }
 
 void AuthBySteamGroup::PrintKickList(int client_id, std::string group_id,
                                      std::string steam_key) {
   int user_id = GetUserIdByClientId(client_id);
-  auto async_op = std::async([this, user_id, group_id,
-                              steam_key]() -> std::function<void()> {
-    auto is_group_member = CheckGroupMembership(user_id, group_id, steam_key);
-    if (!is_group_member.get()) {
-      return std::bind(&AuthBySteamGroup::PrintKickListFails, this, user_id);
-    }
+  auto async_op = std::async(
+      std::launch::async,
+      [this, user_id, group_id, steam_key]() -> std::function<void()> {
+        auto is_group_member =
+            CheckGroupMembership(user_id, group_id, steam_key);
+        if (!is_group_member.get()) {
+          return std::bind(&AuthBySteamGroup::PrintKickListFails, this,
+                           user_id);
+        }
 
-    return std::bind(&AuthBySteamGroup::PrintKickListSucceeds, this, user_id);
-  });
+        return std::bind(&AuthBySteamGroup::PrintKickListSucceeds, this,
+                         user_id);
+      });
 
   std::lock_guard<std::mutex> lock(m_plugin_lock);
   m_async_operations.push_back(std::move(async_op));
@@ -471,18 +479,20 @@ bool AuthBySteamGroup::TryProcessKickCommand(int client_id,
   int requester_user_id = GetUserIdByClientId(client_id);
   int to_kick_user_id = iter->second;
 
-  auto async_op = std::async([this, requester_user_id, to_kick_user_id,
-                              group_id, steam_key]() -> std::function<void()> {
-    auto is_group_member =
-        CheckGroupMembership(requester_user_id, group_id, steam_key);
-    if (!is_group_member.get()) {
-      return std::bind(&AuthBySteamGroup::KickCommandFails, this,
-                       requester_user_id);
-    }
+  auto async_op =
+      std::async(std::launch::async,
+                 [this, requester_user_id, to_kick_user_id, group_id,
+                  steam_key]() -> std::function<void()> {
+                   auto is_group_member = CheckGroupMembership(
+                       requester_user_id, group_id, steam_key);
+                   if (!is_group_member.get()) {
+                     return std::bind(&AuthBySteamGroup::KickCommandFails, this,
+                                      requester_user_id);
+                   }
 
-    return std::bind(&AuthBySteamGroup::KickCommandSucceeds, this,
-                     to_kick_user_id);
-  });
+                   return std::bind(&AuthBySteamGroup::KickCommandSucceeds,
+                                    this, to_kick_user_id);
+                 });
 
   m_async_operations.push_back(std::move(async_op));
 
