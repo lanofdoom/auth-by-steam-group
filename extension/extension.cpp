@@ -119,7 +119,7 @@ bool CheckGroupMembershipImpl(uint64_t steam_id64,
   return client_group_ids.count(steam_group_id) != 0;
 }
 
-cell_t AllowAccess(IPluginContext* context, const cell_t* params) {
+cell_t AllowJoin(IPluginContext* context, const cell_t* params) {
   int client_id = params[1];
 
   char* group_id;
@@ -128,7 +128,7 @@ cell_t AllowAccess(IPluginContext* context, const cell_t* params) {
   char* steam_key;
   context->LocalToString(params[3], &steam_key);
 
-  g_auth_by_steam_group.AllowAccess(client_id, group_id, steam_key);
+  g_auth_by_steam_group.AllowJoin(client_id, group_id, steam_key);
   return 0;
 }
 
@@ -185,7 +185,7 @@ cell_t TryProcessKickCommand(IPluginContext* context, const cell_t* params) {
 }
 
 static const sp_nativeinfo_t g_natives[] = {
-    {"AuthBySteamGroup_AllowAccess", AllowAccess},
+    {"AuthBySteamGroup_AllowJoin", AllowJoin},
     {"AuthBySteamGroup_CheckUser", CheckUser},
     {"AuthBySteamGroup_PrintKickList", PrintKickList},
     {"AuthBySteamGroup_OnFrame", OnFrame},
@@ -250,14 +250,14 @@ std::future<bool> AuthBySteamGroup::CheckGroupMembership(
                     group_id, steam_key);
 }
 
-void AuthBySteamGroup::AllowAccessSucceeds() {
+void AuthBySteamGroup::AllowJoinSucceeds() {
   PrintToAll(
       "The next unauthorized player that attempts to join the server will be "
       "allowed access.");
   m_allow_next_access = true;
 }
 
-void AuthBySteamGroup::AllowAccessFails(int user_id) {
+void AuthBySteamGroup::AllowJoinFails(int user_id) {
   int client_id = m_player_manager->GetClientOfUserId(user_id);
   if (client_id == 0) {
     return;
@@ -402,8 +402,8 @@ void AuthBySteamGroup::KickCommandFails(int requester_user_id) {
                           "You are not authorized to use that command.");
 }
 
-void AuthBySteamGroup::AllowAccess(int client_id, std::string group_id,
-                                   std::string steam_key) {
+void AuthBySteamGroup::AllowJoin(int client_id, std::string group_id,
+                                 std::string steam_key) {
   int user_id = GetUserIdByClientId(client_id);
   auto async_op = std::async(
       std::launch::async,
@@ -411,10 +411,10 @@ void AuthBySteamGroup::AllowAccess(int client_id, std::string group_id,
         auto is_group_member =
             CheckGroupMembership(user_id, group_id, steam_key);
         if (!is_group_member.get()) {
-          return std::bind(&AuthBySteamGroup::AllowAccessFails, this, user_id);
+          return std::bind(&AuthBySteamGroup::AllowJoinFails, this, user_id);
         }
 
-        return std::bind(&AuthBySteamGroup::AllowAccessSucceeds, this);
+        return std::bind(&AuthBySteamGroup::AllowJoinSucceeds, this);
       });
 
   std::lock_guard<std::mutex> lock(m_plugin_lock);
@@ -436,7 +436,7 @@ void AuthBySteamGroup::CheckAccess(int client_id, std::string group_id,
   };
 
   std::lock_guard<std::mutex> lock(m_plugin_lock);
-  if (m_player_manager->GetNumPlayers() == 1) {
+  if (m_player_manager->GetNumPlayers() <= 1) {
     check_membership()();
     return;
   }
