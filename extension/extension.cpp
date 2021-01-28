@@ -120,26 +120,26 @@ bool CheckGroupMembershipImpl(uint64_t steam_id64,
 }
 
 cell_t AllowAccess(IPluginContext* context, const cell_t* params) {
-  int client_id = params[2];
+  int client_id = params[1];
 
   char* group_id;
-  context->LocalToString(params[3], &group_id);
+  context->LocalToString(params[2], &group_id);
 
   char* steam_key;
-  context->LocalToString(params[4], &steam_key);
+  context->LocalToString(params[3], &steam_key);
 
   g_auth_by_steam_group.AllowAccess(client_id, group_id, steam_key);
   return 0;
 }
 
 cell_t CheckUser(IPluginContext* context, const cell_t* params) {
-  int client_id = params[2];
+  int client_id = params[1];
 
   char* group_id;
-  context->LocalToString(params[3], &group_id);
+  context->LocalToString(params[2], &group_id);
 
   char* steam_key;
-  context->LocalToString(params[4], &steam_key);
+  context->LocalToString(params[3], &steam_key);
 
   g_auth_by_steam_group.CheckAccess(client_id, group_id, steam_key);
   return 0;
@@ -151,13 +151,13 @@ cell_t OnFrame(IPluginContext* context, const cell_t* params) {
 }
 
 cell_t PrintKickList(IPluginContext* context, const cell_t* params) {
-  int client_id = params[2];
+  int client_id = params[1];
 
   char* group_id;
-  context->LocalToString(params[3], &group_id);
+  context->LocalToString(params[2], &group_id);
 
   char* steam_key;
-  context->LocalToString(params[4], &steam_key);
+  context->LocalToString(params[3], &steam_key);
 
   g_auth_by_steam_group.PrintKickList(client_id, group_id, steam_key);
   return 0;
@@ -169,16 +169,16 @@ cell_t RotateAccessGrants(IPluginContext* context, const cell_t* params) {
 }
 
 cell_t TryProcessKickCommand(IPluginContext* context, const cell_t* params) {
-  int client_id = params[2];
+  int client_id = params[1];
 
   char* group_id;
-  context->LocalToString(params[3], &group_id);
+  context->LocalToString(params[2], &group_id);
 
   char* steam_key;
-  context->LocalToString(params[4], &steam_key);
+  context->LocalToString(params[3], &steam_key);
 
   char* text;
-  context->LocalToString(params[5], &text);
+  context->LocalToString(params[4], &text);
 
   return g_auth_by_steam_group.TryProcessKickCommand(client_id, group_id,
                                                      steam_key, text);
