@@ -238,12 +238,12 @@ std::future<bool> AuthBySteamGroup::CheckGroupMembership(
     int user_id, const std::string& group_id, const std::string& steam_key) {
   auto* game_player = GetPlayerByUserId(user_id);
   if (game_player == nullptr) {
-    return std::async(std::launch::async, []() { return true; });
+    return std::async(std::launch::deferred, []() { return true; });
   }
 
   uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/false);
   if (steam_id64 == 0) {
-    return std::async(std::launch::async, []() { return true; });
+    return std::async(std::launch::deferred, []() { return true; });
   }
 
   return std::async(std::launch::async, CheckGroupMembershipImpl, steam_id64,
