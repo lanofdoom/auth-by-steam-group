@@ -305,7 +305,7 @@ void AuthBySteamGroup::CheckAccessFails(int user_id) {
   }
 
   if (!m_allow_next_access) {
-    game_player->Kick("You are not on the server's allowlist");
+    game_player->Kick("You are not on the server allowlist");
     return;
   }
 
