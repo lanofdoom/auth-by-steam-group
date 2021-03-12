@@ -1,6 +1,6 @@
 ## Releases
 
-* [Latest](https://lanofdoom.github.io/auth-by-steam-group/releases/latest/auth_by_steam_group.tar.gz) ([Source](https://lanofdoom.github.io/auth-by-steam-group/releases/latest/auth_by_steam_group_source.tar.gz)) (2.0.1)
+* [Latest](https://lanofdoom.github.io/auth-by-steam-group/releases/latest/auth_by_steam_group.tar.gz) ([Source](https://lanofdoom.github.io/auth-by-steam-group/releases/latest/auth_by_steam_group_source.tar.gz)) (2.0.2)
 * [Nightly](https://lanofdoom.github.io/auth-by-steam-group/releases/nightly/auth_by_steam_group.tar.gz) ([Source](https://lanofdoom.github.io/auth-by-steam-group/releases/nightly/auth_by_steam_group_source.tar.gz)) 
 
 ## Installation
@@ -17,6 +17,9 @@ Note, servers with ``sv_lan 1`` are not compatible with Steam Group authenticati
 ``sm_auth_by_steam_group_steam_key`` Sets the [Steam API key](https://steamcommunity.com/dev/apikey) for used for the group membership lookups. If empty, all players are allowed to join. Default value is empty.
 
 ## Version History
+
+### 2.0.2 ([Download](https://lanofdoom.github.io/auth-by-steam-group/releases/v2.0.2/auth_by_steam_group.tar.gz)) ([Source](https://lanofdoom.github.io/auth-by-steam-group/releases/v2.0.2/auth_by_steam_group_source.tar.gz))
+* Print message on player join if they have access to the ``allowjoin`` command.
 
 ### 2.0.1 ([Download](https://lanofdoom.github.io/auth-by-steam-group/releases/v2.0.1/auth_by_steam_group.tar.gz)) ([Source](https://lanofdoom.github.io/auth-by-steam-group/releases/v2.0.1/auth_by_steam_group_source.tar.gz))
 * Small tweak to disconnect message for unauthorized players who fail to join.
