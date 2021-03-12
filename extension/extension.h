@@ -19,6 +19,7 @@ class AuthBySteamGroup : public SDKExtension {
   virtual void SDK_OnAllLoaded();
 
   void AllowJoin(int client_id, std::string group_id, std::string steam_key);
+  void DenyJoin(int client_id, std::string group_id, std::string steam_key);
   void CheckAccess(int client_id, std::string group_id, std::string steam_key);
   void PrintKickList(int client_id, std::string group_id,
                      std::string steam_key);
@@ -41,6 +42,10 @@ class AuthBySteamGroup : public SDKExtension {
   // Callbacks for allow access
   void AllowJoinSucceeds();
   void AllowJoinFails(int user_id);
+
+  // Callbacks for allow access
+  void DenyJoinSucceeds();
+  void DenyJoinFails(int user_id);
 
   // Callbacks for check access
   void CheckAccessSucceeds(int user_id);

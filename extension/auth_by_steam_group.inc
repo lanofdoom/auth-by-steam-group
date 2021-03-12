@@ -11,6 +11,16 @@ native void AuthBySteamGroup_AllowJoin(
     int client_id, const char[] steam_group_id, const char[] steam_key);
 
 /**
+ * Disables allows access allowed by AuthBySteamGroup_AllowJoin if active.
+ *
+ * @param client_id              The client id requesting the auth bypass.
+ * @param steam_group_id         The Steam group to check for membership.
+ * @param steam_key              The key to use for the Steam API lookups.
+ */
+native void AuthBySteamGroup_DenyJoin(
+    int client_id, const char[] steam_group_id, const char[] steam_key);
+
+/**
  * Checks if a user is a member of the indicated steam group. If the check
  * fails, the user will be kicked asynchronously.
  *
