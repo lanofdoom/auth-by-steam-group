@@ -362,10 +362,11 @@ void AuthBySteamGroup::CheckAccessFails(int user_id) {
   }
 
   PrintToAll(
-      "If this was not the player you intended to let in, use command '" +
+      "If this was not the player you intended to let in, authorized players "
+      "may use the command '" +
       kick_command +
-      "' to remove them from the server or use command 'kicklist' to view the "
-      "list of all kickable players.");
+      "' to remove them from the server or use the command 'kicklist' to view "
+      "the list of all kickable players.");
 
   m_this_rotation_allowed_steam_ids.insert(steam_id64);
   m_kick_command_to_user_id[kick_command] = user_id;
