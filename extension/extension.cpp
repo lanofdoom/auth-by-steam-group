@@ -281,14 +281,12 @@ void AuthBySteamGroup::CheckAccessSucceeds(int user_id) {
   if (m_this_rotation_allowed_steam_ids.count(steam_id64) == 0 &&
       m_last_rotation_allowed_steam_ids.count(steam_id64) == 0) {
     int client_id = m_player_manager->GetClientOfUserId(user_id);
-    if (client_id == 0) {
-      return;
+    if (client_id != 0) {
+      m_game_helpers->TextMsg(
+          client_id, TEXTMSG_DEST_CHAT,
+          "You have been granted access to the \'allowjoin\' command to allow "
+          "unauthorized players to join the server.");
     }
-
-    m_game_helpers->TextMsg(
-        client_id, TEXTMSG_DEST_CHAT,
-        "You have been granted access to the \'allowjoin\' command to allow "
-        "unauthorized players to join the server.");
   }
 
   m_this_rotation_allowed_steam_ids.insert(steam_id64);
