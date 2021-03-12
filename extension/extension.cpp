@@ -267,7 +267,7 @@ std::future<bool> AuthBySteamGroup::CheckGroupMembership(
 void AuthBySteamGroup::AllowJoinSucceeds() {
   PrintToAll(
       "The next unauthorized player that attempts to join the server will be "
-      "allowed access. Authorized players may use \'denyjoin\' command to "
+      "allowed access. Authorized players may use the 'denyjoin' command to "
       "disable this access.");
   m_allow_next_access = true;
 }
@@ -315,7 +315,7 @@ void AuthBySteamGroup::CheckAccessSucceeds(int user_id) {
     int client_id = m_player_manager->GetClientOfUserId(user_id);
     if (client_id != 0) {
       m_game_helpers->TextMsg(client_id, TEXTMSG_DEST_CHAT,
-                              "Use the \'allowjoin\' command to allow "
+                              "Use the 'allowjoin' command to allow "
                               "unauthorized players to join the server.");
     }
   }
