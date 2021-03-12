@@ -278,8 +278,8 @@ void AuthBySteamGroup::CheckAccessSucceeds(int user_id) {
     return;
   }
 
-  if (m_this_rotation_allowed_steam_ids.count(user_id) == 0 &&
-      m_last_rotation_allowed_steam_ids.count(user_id) == 0) {
+  if (m_this_rotation_allowed_steam_ids.count(steam_id64) == 0 &&
+      m_last_rotation_allowed_steam_ids.count(steam_id64) == 0) {
     int client_id = m_player_manager->GetClientOfUserId(user_id);
     if (client_id == 0) {
       return;
