@@ -132,6 +132,19 @@ cell_t AllowJoin(IPluginContext* context, const cell_t* params) {
   return 0;
 }
 
+cell_t DenyJoin(IPluginContext* context, const cell_t* params) {
+  int client_id = params[1];
+
+  char* group_id;
+  context->LocalToString(params[2], &group_id);
+
+  char* steam_key;
+  context->LocalToString(params[3], &steam_key);
+
+  g_auth_by_steam_group.DenyJoin(client_id, group_id, steam_key);
+  return 0;
+}
+
 cell_t CheckUser(IPluginContext* context, const cell_t* params) {
   int client_id = params[1];
 
@@ -186,6 +199,7 @@ cell_t TryProcessKickCommand(IPluginContext* context, const cell_t* params) {
 
 static const sp_nativeinfo_t g_natives[] = {
     {"AuthBySteamGroup_AllowJoin", AllowJoin},
+    {"AuthBySteamGroup_DenyJoin", DenyJoin},
     {"AuthBySteamGroup_CheckUser", CheckUser},
     {"AuthBySteamGroup_PrintKickList", PrintKickList},
     {"AuthBySteamGroup_OnFrame", OnFrame},
@@ -253,11 +267,29 @@ std::future<bool> AuthBySteamGroup::CheckGroupMembership(
 void AuthBySteamGroup::AllowJoinSucceeds() {
   PrintToAll(
       "The next unauthorized player that attempts to join the server will be "
-      "allowed access.");
+      "allowed access. Authorized players may use \'denyjoin\' command to "
+      "disable this access.");
   m_allow_next_access = true;
 }
 
 void AuthBySteamGroup::AllowJoinFails(int user_id) {
+  int client_id = m_player_manager->GetClientOfUserId(user_id);
+  if (client_id == 0) {
+    return;
+  }
+
+  m_game_helpers->TextMsg(client_id, TEXTMSG_DEST_CHAT,
+                          "You are not authorized to use that command.");
+}
+
+void AuthBySteamGroup::DenyJoinSucceeds() {
+  if (m_allow_next_access) {
+    m_allow_next_access = false;
+    PrintToAll("Unauthorized player server access disabled.");
+  }
+}
+
+void AuthBySteamGroup::DenyJoinFails(int user_id) {
   int client_id = m_player_manager->GetClientOfUserId(user_id);
   if (client_id == 0) {
     return;
@@ -431,6 +463,25 @@ void AuthBySteamGroup::AllowJoin(int client_id, std::string group_id,
   m_async_operations.push_back(std::move(async_op));
 }
 
+void AuthBySteamGroup::DenyJoin(int client_id, std::string group_id,
+                                std::string steam_key) {
+  int user_id = GetUserIdByClientId(client_id);
+  auto async_op = std::async(
+      std::launch::async,
+      [this, user_id, group_id, steam_key]() -> std::function<void()> {
+        auto is_group_member =
+            CheckGroupMembership(user_id, group_id, steam_key);
+        if (!is_group_member.get()) {
+          return std::bind(&AuthBySteamGroup::DenyJoinFails, this, user_id);
+        }
+
+        return std::bind(&AuthBySteamGroup::DenyJoinSucceeds, this);
+      });
+
+  std::lock_guard<std::mutex> lock(m_plugin_lock);
+  m_async_operations.push_back(std::move(async_op));
+}
+
 void AuthBySteamGroup::CheckAccess(int client_id, std::string group_id,
                                    std::string steam_key) {
   int user_id = GetUserIdByClientId(client_id);
@@ -510,6 +561,7 @@ void AuthBySteamGroup::RotateAccessGrants() {
             m_last_rotation_allowed_steam_ids);
   m_this_rotation_allowed_steam_ids.clear();
   m_kick_command_to_user_id.clear();
+  m_allow_next_access = false;
 }
 
 void AuthBySteamGroup::OnFrame() {

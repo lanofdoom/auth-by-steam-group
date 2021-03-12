@@ -11,7 +11,7 @@ Handle g_steam_key;
 public const Plugin myinfo = {
     name = "Authenticate by Steam Group Plugin", author = "LAN of DOOM",
     description = "Block non-members of a Steam group from joining",
-    version = "2.0.2",
+    version = "2.1.0",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
 public Extension __ext_auth_by_steam_group = {
@@ -56,6 +56,11 @@ public void OnClientSayCommand_Post(int client, const char[] command,
 
   if (StrEqual(text, "allowjoin")) {
     AuthBySteamGroup_AllowJoin(client, group_id, steam_key);
+    return;
+  }
+
+  if (StrEqual(text, "denyjoin")) {
+    AuthBySteamGroup_DenyJoin(client, group_id, steam_key);
     return;
   }
 
