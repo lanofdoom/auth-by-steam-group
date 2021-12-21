@@ -72,46 +72,46 @@ bool CheckGroupMembershipImpl(uint64_t steam_id64,
                               const std::string& steam_api_key) {
   CURL* curl = curl_easy_init();
   if (curl == nullptr) {
-    return true;
+    return false;
   }
 
   CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return true;
+    return false;
   }
 
   std::string data;
   code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return true;
+    return false;
   }
 
   std::string query_url = BuildQueryUrl(steam_id64, steam_api_key);
   code = curl_easy_setopt(curl, CURLOPT_URL, query_url.c_str());
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return true;
+    return false;
   }
 
   code = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return true;
+    return false;
   }
 
   code = curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return true;
+    return false;
   }
 
   code = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
 
   if (code != CURLE_OK) {
-    return true;
+    return false;
   }
 
   std::set<std::string> client_group_ids = ParseGroupIds(data);
@@ -252,12 +252,12 @@ std::future<bool> AuthBySteamGroup::CheckGroupMembership(
     int user_id, const std::string& group_id, const std::string& steam_key) {
   auto* game_player = GetPlayerByUserId(user_id);
   if (game_player == nullptr) {
-    return std::async(std::launch::deferred, []() { return true; });
+    return std::async(std::launch::deferred, []() { return false; });
   }
 
-  uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/false);
+  uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/true);
   if (steam_id64 == 0) {
-    return std::async(std::launch::deferred, []() { return true; });
+    return std::async(std::launch::deferred, []() { return false; });
   }
 
   return std::async(std::launch::async, CheckGroupMembershipImpl, steam_id64,
@@ -305,7 +305,7 @@ void AuthBySteamGroup::CheckAccessSucceeds(int user_id) {
     return;
   }
 
-  uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/false);
+  uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/true);
   if (steam_id64 == 0) {
     return;
   }
@@ -329,8 +329,9 @@ void AuthBySteamGroup::CheckAccessFails(int user_id) {
     return;
   }
 
-  uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/false);
+  uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/true);
   if (steam_id64 == 0) {
+    game_player->Kick("Your Steam ID could not be validated");
     return;
   }
 
@@ -418,7 +419,7 @@ void AuthBySteamGroup::KickCommandSucceeds(int to_kick_user_id) {
     return;
   }
 
-  uint64_t steam_id64 = player_to_kick->GetSteamId64(/*validated=*/false);
+  uint64_t steam_id64 = player_to_kick->GetSteamId64(/*validated=*/true);
   if (steam_id64 != 0) {
     m_kick_command_to_user_id.erase(KickCommand(steam_id64));
     m_this_rotation_allowed_steam_ids.erase(steam_id64);
