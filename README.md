@@ -10,8 +10,6 @@ Check out the repository, install the dependencies listed in ``build.sh``, and t
 1) Install the ``libcurl:i386`` package or its equivalent on your distribution to your server.
 2) Extract ``auth_by_steam_group_source.tar.gz`` in your server's ``cstrike`` directory or equivalent.
 
-Note, servers with ``sv_lan 1`` are not compatible with Steam Group authentication.
-
 # Console Variables
 ``sm_auth_by_steam_allowjoin_enabled`` If enabled, members of the authorized Steam group can allow the next unauthorized user to join the server by saying `allowjoin` in chat. Default value is enabled.
 
