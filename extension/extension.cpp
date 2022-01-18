@@ -255,13 +255,31 @@ std::future<bool> AuthBySteamGroup::CheckGroupMembership(
     return std::async(std::launch::deferred, []() { return false; });
   }
 
-  uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/true);
+  uint64_t steam_id64 = game_player->GetSteamId64(/*validated=*/false);
   if (steam_id64 == 0) {
     return std::async(std::launch::deferred, []() { return false; });
   }
 
-  return std::async(std::launch::async, CheckGroupMembershipImpl, steam_id64,
-                    group_id, steam_key);
+  return std::async(std::launch::async, [this, user_id, steam_id64, group_id,
+                                         steam_key]() {
+    bool is_member = CheckGroupMembershipImpl(steam_id64, group_id, steam_key);
+    if (!is_member) {
+      return false;
+    }
+
+    auto* updated_game_player = GetPlayerByUserId(user_id);
+    if (updated_game_player == nullptr) {
+      return false;
+    }
+
+    uint64_t validated_steam_id64 =
+        updated_game_player->GetSteamId64(/*validated=*/true);
+    if (validated_steam_id64 == 0) {
+      return false;
+    }
+
+    return validated_steam_id64 == steam_id64;
+  });
 }
 
 void AuthBySteamGroup::AllowJoinSucceeds() {
