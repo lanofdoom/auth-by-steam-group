@@ -3,7 +3,7 @@
 #include <i386-linux-gnu/curl/curl.h>
 
 #include <algorithm>
-#include <optional>
+#include <memory>
 
 namespace {
 
@@ -76,48 +76,48 @@ size_t WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
   return size * nmemb;
 }
 
-std::optional<std::string> DoHttpRequest(const std::string& url) {
+std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
   CURL* curl = curl_easy_init();
   if (curl == nullptr) {
-    return std::nullopt;
+    return std::unique_ptr<std::string>();
   }
 
   CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return std::nullopt;
+    return std::unique_ptr<std::string>();
   }
 
-  std::string data;
-  code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+  std::unique_ptr<std::string> data = std::make_unique<std::string>();
+  code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, data.get());
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return std::nullopt;
+    return std::unique_ptr<std::string>();
   }
 
   code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return std::nullopt;
+    return std::unique_ptr<std::string>();
   }
 
   code = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return std::nullopt;
+    return std::unique_ptr<std::string>();
   }
 
   code = curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return std::nullopt;
+    return std::unique_ptr<std::string>();
   }
 
   code = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
 
   if (code != CURLE_OK) {
-    return std::nullopt;
+    return std::unique_ptr<std::string>();
   }
 
   return data;
@@ -127,22 +127,22 @@ bool CheckGroupMembershipSteamworks(uint64_t steam_id64,
                                     const std::string& steam_group_id,
                                     const std::string& steam_api_key) {
   std::string request = BuildSteamworksQueryUrl(steam_id64, steam_api_key);
-  std::optional<std::string> response = DoHttpRequest(request);
-  if (!response.has_value()) {
+  std::unique_ptr<std::string> response = DoHttpRequest(request);
+  if (!response) {
     return false;
   }
-  std::set<std::string> client_group_ids = ParseGroupIds(response.get());
+  std::set<std::string> client_group_ids = ParseGroupIds(*response);
   return client_group_ids.count(steam_group_id) != 0;
 }
 
 bool CheckGroupMembershipCommunity(uint64_t steam_id64,
                                    const std::string& steam_group_id) {
   std::string request = BuildCommunityQueryUrl(steam_group_id);
-  std::optional<std::string> response = DoHttpRequest(request);
-  if (!response.has_value()) {
+  std::unique_ptr<std::string> response = DoHttpRequest(request);
+  if (!response) {
     return false;
   }
-  return response.get().find(std::to_string(steam_id64)) != string::npos;
+  return response->find(std::to_string(steam_id64)) != string::npos;
 }
 
 cell_t AllowJoin(IPluginContext* context, const cell_t* params) {
