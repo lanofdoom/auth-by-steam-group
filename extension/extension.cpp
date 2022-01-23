@@ -82,7 +82,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
     return std::unique_ptr<std::string>();
   }
 
-  CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+  CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
     return std::unique_ptr<std::string>();
@@ -142,7 +142,7 @@ bool CheckGroupMembershipCommunity(uint64_t steam_id64,
   if (!response) {
     return false;
   }
-  return response->find(std::to_string(steam_id64)) != string::npos;
+  return response->find(std::to_string(steam_id64)) != std::string::npos;
 }
 
 cell_t AllowJoin(IPluginContext* context, const cell_t* params) {
