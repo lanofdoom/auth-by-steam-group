@@ -3,6 +3,7 @@
 #include <i386-linux-gnu/curl/curl.h>
 
 #include <algorithm>
+#include <optional>
 
 namespace {
 
@@ -50,7 +51,8 @@ std::set<std::string> ParseGroupIds(const std::string& response) {
   return result;
 }
 
-std::string BuildQueryUrl(uint64_t steam_id64, const std::string& steam_key) {
+std::string BuildSteamworksQueryUrl(uint64_t steam_id64,
+                                    const std::string& steam_key) {
   std::string url =
       "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?steamid=";
   url += std::to_string(steam_id64);
@@ -59,7 +61,14 @@ std::string BuildQueryUrl(uint64_t steam_id64, const std::string& steam_key) {
   return url;
 }
 
-size_t write_callback(char* ptr, size_t size, size_t nmemb, void* userdata) {
+std::string BuildCommunityQueryUrl(const std::string& steam_group_id) {
+  std::string url = "https://steamcommunity.com/gid/[G:1:";
+  url += steam_group_id;
+  url += "]/memberslistxml/?xml=1";
+  return url;
+}
+
+size_t WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
   std::string* data = reinterpret_cast<std::string*>(userdata);
   for (size_t i = 0; i < size * nmemb; i++) {
     data->push_back(ptr[i]);
@@ -67,56 +76,73 @@ size_t write_callback(char* ptr, size_t size, size_t nmemb, void* userdata) {
   return size * nmemb;
 }
 
-bool CheckGroupMembershipImpl(uint64_t steam_id64,
-                              const std::string& steam_group_id,
-                              const std::string& steam_api_key) {
+std::optional<std::string> DoHttpRequest(const std::string& url) {
   CURL* curl = curl_easy_init();
   if (curl == nullptr) {
-    return false;
+    return std::nullopt;
   }
 
   CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return false;
+    return std::nullopt;
   }
 
   std::string data;
   code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return false;
+    return std::nullopt;
   }
 
-  std::string query_url = BuildQueryUrl(steam_id64, steam_api_key);
-  code = curl_easy_setopt(curl, CURLOPT_URL, query_url.c_str());
+  code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return false;
+    return std::nullopt;
   }
 
   code = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return false;
+    return std::nullopt;
   }
 
   code = curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
-    return false;
+    return std::nullopt;
   }
 
   code = curl_easy_perform(curl);
   curl_easy_cleanup(curl);
 
   if (code != CURLE_OK) {
-    return false;
+    return std::nullopt;
   }
 
-  std::set<std::string> client_group_ids = ParseGroupIds(data);
+  return data;
+}
 
+bool CheckGroupMembershipSteamworks(uint64_t steam_id64,
+                                    const std::string& steam_group_id,
+                                    const std::string& steam_api_key) {
+  std::string request = BuildSteamworksQueryUrl(steam_id64, steam_api_key);
+  std::optional<std::string> response = DoHttpRequest(request);
+  if (!response.has_value()) {
+    return false;
+  }
+  std::set<std::string> client_group_ids = ParseGroupIds(response.get());
   return client_group_ids.count(steam_group_id) != 0;
+}
+
+bool CheckGroupMembershipCommunity(uint64_t steam_id64,
+                                   const std::string& steam_group_id) {
+  std::string request = BuildCommunityQueryUrl(steam_group_id);
+  std::optional<std::string> response = DoHttpRequest(request);
+  if (!response.has_value()) {
+    return false;
+  }
+  return response.get().find(std::to_string(steam_id64)) != string::npos;
 }
 
 cell_t AllowJoin(IPluginContext* context, const cell_t* params) {
@@ -260,26 +286,31 @@ std::future<bool> AuthBySteamGroup::CheckGroupMembership(
     return std::async(std::launch::deferred, []() { return false; });
   }
 
-  return std::async(std::launch::async, [this, user_id, steam_id64, group_id,
-                                         steam_key]() {
-    bool is_member = CheckGroupMembershipImpl(steam_id64, group_id, steam_key);
-    if (!is_member) {
-      return false;
-    }
+  return std::async(
+      std::launch::async, [this, user_id, steam_id64, group_id, steam_key]() {
+        std::future<bool> is_member_steamworks =
+            std::async(std::launch::async, CheckGroupMembershipSteamworks,
+                       steam_id64, group_id, steam_key);
+        std::future<bool> is_member_community =
+            std::async(std::launch::async, CheckGroupMembershipCommunity,
+                       steam_id64, group_id);
+        if (!is_member_steamworks.get() && !is_member_community.get()) {
+          return false;
+        }
 
-    auto* updated_game_player = GetPlayerByUserId(user_id);
-    if (updated_game_player == nullptr) {
-      return false;
-    }
+        auto* updated_game_player = GetPlayerByUserId(user_id);
+        if (updated_game_player == nullptr) {
+          return false;
+        }
 
-    uint64_t validated_steam_id64 =
-        updated_game_player->GetSteamId64(/*validated=*/true);
-    if (validated_steam_id64 == 0) {
-      return false;
-    }
+        uint64_t validated_steam_id64 =
+            updated_game_player->GetSteamId64(/*validated=*/true);
+        if (validated_steam_id64 == 0) {
+          return false;
+        }
 
-    return validated_steam_id64 == steam_id64;
-  });
+        return validated_steam_id64 == steam_id64;
+      });
 }
 
 void AuthBySteamGroup::AllowJoinSucceeds() {
