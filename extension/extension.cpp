@@ -1,6 +1,10 @@
 #include "extension.h"
 
+#ifndef _WIN32
 #include <i386-linux-gnu/curl/curl.h>
+#else
+#include <winhttp.h>
+#endif  // _WIN32
 
 #include <algorithm>
 #include <memory>
@@ -8,6 +12,143 @@
 namespace {
 
 AuthBySteamGroup g_auth_by_steam_group;
+
+#ifndef _WIN32
+
+size_t WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
+  std::string* data = reinterpret_cast<std::string*>(userdata);
+  for (size_t i = 0; i < size * nmemb; i++) {
+    data->push_back(ptr[i]);
+  }
+  return size * nmemb;
+}
+
+std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
+  CURL* curl = curl_easy_init();
+  if (curl == nullptr) {
+    return std::unique_ptr<std::string>();
+  }
+
+  CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return std::unique_ptr<std::string>();
+  }
+
+  std::unique_ptr<std::string> data = std::make_unique<std::string>();
+  code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, data.get());
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return std::unique_ptr<std::string>();
+  }
+
+  code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return std::unique_ptr<std::string>();
+  }
+
+  code = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return std::unique_ptr<std::string>();
+  }
+
+  code = curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+  if (code != CURLE_OK) {
+    curl_easy_cleanup(curl);
+    return std::unique_ptr<std::string>();
+  }
+
+  code = curl_easy_perform(curl);
+  curl_easy_cleanup(curl);
+
+  if (code != CURLE_OK) {
+    return std::unique_ptr<std::string>();
+  }
+
+  return data;
+}
+
+#else
+
+std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
+  HINTERNET session =
+      WinHttpOpen(L"WinHTTP/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                  WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+  if (!session) {
+    return std::unique_ptr<std::string>();
+  }
+
+  std::wstring wurl(url.begin(), url.end());
+  HINTERNET connect =
+      WinHttpConnect(session, wurl.c_str(), INTERNET_DEFAULT_HTTPS_PORT, 0);
+  if (!connect) {
+    WinHttpCloseHandle(session);
+    return std::unique_ptr<std::string>();
+  }
+
+  HINTERNET request =
+      WinHttpOpenRequest(connect, L"GET", NULL, NULL, WINHTTP_NO_REFERER,
+                         WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
+  if (!request) {
+    WinHttpCloseHandle(connect);
+    WinHttpCloseHandle(session);
+    return std::unique_ptr<std::string>();
+  }
+
+  BOOL results = WinHttpSendRequest(request, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
+                                    WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
+  if (!results) {
+    WinHttpCloseHandle(request);
+    WinHttpCloseHandle(connect);
+    WinHttpCloseHandle(session);
+    return std::unique_ptr<std::string>();
+  }
+
+  results = WinHttpReceiveResponse(request, NULL);
+  if (!results) {
+    WinHttpCloseHandle(request);
+    WinHttpCloseHandle(connect);
+    WinHttpCloseHandle(session);
+    return std::unique_ptr<std::string>();
+  }
+
+  std::unique_ptr<std::string> data = std::make_unique<std::string>();
+  for (;;) {
+    DWORD size;
+    if (!WinHttpQueryDataAvailable(request, &size)) {
+      WinHttpCloseHandle(request);
+      WinHttpCloseHandle(connect);
+      WinHttpCloseHandle(session);
+      return std::unique_ptr<std::string>();
+    }
+
+    std::string buffer(size, '\0');
+
+    DWORD downloaded;
+    if (!WinHttpReadData(request, (LPVOID)&buffer[0], size, &downloaded)) {
+      WinHttpCloseHandle(request);
+      WinHttpCloseHandle(connect);
+      WinHttpCloseHandle(session);
+      return std::unique_ptr<std::string>();
+    }
+
+    *data += buffer;
+
+    if (size == 0) {
+      break;
+    }
+  }
+
+  WinHttpCloseHandle(request);
+  WinHttpCloseHandle(connect);
+  WinHttpCloseHandle(session);
+
+  return data;
+}
+
+#endif  // _WIN32
 
 std::vector<std::string> Tokenize(const std::string& value,
                                   const std::string& delims) {
@@ -66,61 +207,6 @@ std::string BuildCommunityQueryUrl(const std::string& steam_group_id) {
   url += steam_group_id;
   url += "]/memberslistxml/?xml=1";
   return url;
-}
-
-size_t WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
-  std::string* data = reinterpret_cast<std::string*>(userdata);
-  for (size_t i = 0; i < size * nmemb; i++) {
-    data->push_back(ptr[i]);
-  }
-  return size * nmemb;
-}
-
-std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
-  CURL* curl = curl_easy_init();
-  if (curl == nullptr) {
-    return std::unique_ptr<std::string>();
-  }
-
-  CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  std::unique_ptr<std::string> data = std::make_unique<std::string>();
-  code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, data.get());
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  code = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  code = curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  code = curl_easy_perform(curl);
-  curl_easy_cleanup(curl);
-
-  if (code != CURLE_OK) {
-    return std::unique_ptr<std::string>();
-  }
-
-  return data;
 }
 
 bool CheckGroupMembershipSteamworks(uint64_t steam_id64,

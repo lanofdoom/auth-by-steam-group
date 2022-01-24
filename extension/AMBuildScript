@@ -250,6 +250,7 @@ class ExtensionConfig(object):
       'uuid.lib',
       'odbc32.lib',
       'odbccp32.lib',
+      'winhttp.lib',
     ]
 
     if builder.options.opt == '1':
