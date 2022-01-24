@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Build
-        run:
+        run: |
           \& "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\Launch-VsDevShell.ps1"
           .\build.ps1
 
