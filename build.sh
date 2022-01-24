@@ -19,7 +19,7 @@ cd ../plugin
 ./build.sh
 cd ..
 
-tar -czf auth_by_steam_group_source.tar.gz extension plugin build.sh LICENSE README.md
+tar -czf auth_by_steam_group_source.tar.gz extension plugin build.ps1 build.sh LICENSE README.md
 
 cd build
 tar -czf auth_by_steam_group.tar.gz addons
