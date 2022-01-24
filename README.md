@@ -1,5 +1,5 @@
 # LAN of DOOM Authenticate By Steam Group Plugin
-SourceMod extension and plugin for **Linux** SRCDS servers that together only permits members of a specified steam groups to join the server.
+SourceMod extension and plugin for SRCDS servers that together only permits members of a specified steam groups to join the server.
 
 Note, servers with ``sv_lan 1`` are not compatible with Steam Group authentication.
 
@@ -7,8 +7,8 @@ Note, servers with ``sv_lan 1`` are not compatible with Steam Group authenticati
 Check out the repository, install the dependencies listed in ``build.sh``, and then run the ``./build.sh`` script.
 
 # Installation
-1) Install the ``libcurl:i386`` package or its equivalent on your distribution to your server.
-2) Extract ``auth_by_steam_group_source.tar.gz`` in your server's ``cstrike`` directory or equivalent.
+1) If running Linux, install the ``libcurl:i386`` package or its equivalent on your distribution to your server.
+2) Extract ``auth_by_steam_group_source.tar.gz`` or ``auth_by_steam_group_source.zip`` in your server's ``cstrike`` directory or equivalent.
 
 # Console Variables
 ``sm_auth_by_steam_allowjoin_enabled`` If enabled, members of the authorized Steam group can allow the next unauthorized user to join the server by saying `allowjoin` in chat. Default value is enabled.
