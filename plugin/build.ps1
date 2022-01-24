@@ -4,13 +4,15 @@ Function New-TemporaryFolder {
     New-Item -Itemtype Directory -Path "$($ENV:Temp)\$($File.Name)" 
 }
 
-$tools = 'https://sm.alliedmods.net/smdrop/1.10/sourcemod-1.10.0-git6528-windows.zip'
-
 $tempdir = New-TemporaryFolder
+$tools = 'https://sm.alliedmods.net/smdrop/1.10/sourcemod-1.10.0-git6528-windows.zip'
+$tools_download_path = $tempdir.FullName + '\tools.zip'
 
-curl $tools -o $tmp_dir\tools.zip
-7z x $tmp_dir/tools.tar.gz -o $tmp_dir
-$tmp_dir/addons/sourcemod/scripting/spcomp auth_by_steam_group.sp
+& curl $tools -o $tools_download_path
+Expand-Archive -LiteralPath $tools_download_path -DestinationPath $tempdir.FullName
+
+$spcomp = $tempdir.FullName + '\addons\sourcemod\scripting\spcomp'
+& $spcomp auth_by_steam_group.sp
 
 mkdir -p ../build/addons/sourcemod/plugins
 move auth_by_steam_group.smx ../build/addons/sourcemod/plugins/auth_by_steam_group.smx

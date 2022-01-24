@@ -10,7 +10,7 @@ cd ..\plugin
 cd ..
 
 cd build
-7z a -tzip auth_by_steam_group.zip addons
+Compress-Archive -Path addons -DestinationPath auth_by_steam_group.zip
 mkdir -p dist
 move auth_by_steam_group.zip dist\auth_by_steam_group.zip
 cd ..

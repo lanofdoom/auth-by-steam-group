@@ -9,4 +9,4 @@ cp package\addons\sourcemod\extensions\* ..\..\..\build\addons\sourcemod\extensi
 
 echo built auth_by_source_id.ext.dll
 
-cd ..\..\extension
+cd ..\..\..\extension
