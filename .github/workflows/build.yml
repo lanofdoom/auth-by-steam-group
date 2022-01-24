@@ -4,8 +4,29 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    runs-on: ubuntu-ubuntu-latest
+  build-windows:
+    runs-on: windows-2022
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          pushd
+          & "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\Launch-VsDevShell.ps1"
+          popd
+          .\build.ps1
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2.2.1
+        with:
+          name: auth_by_steam_group_windows
+          path: build/dist/auth_by_steam_group.zip
+
+  build-linux-and-deploy:
+    concurrency: ci-${{ github.ref }}
+    needs: [build]
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -23,10 +44,11 @@ jobs:
         run:
           PATH=/home/runner/.local/bin:$PATH ./build.sh
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2.2.1
+      - name: Download Artifacts
+        uses: actions/download-artifact@v1
         with:
-          path: build/dist/
+          name: auth_by_steam_group_windows
+          path: build/dist
 
       - name: Deploy tarball
         uses: JamesIves/github-pages-deploy-action@3.7.1
