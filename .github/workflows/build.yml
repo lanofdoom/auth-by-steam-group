@@ -25,7 +25,7 @@ jobs:
 
   build-linux-and-deploy:
     concurrency: ci-${{ github.ref }}
-    needs: [build]
+    needs: [build-windows]
     runs-on: ubuntu-latest
 
     steps:
