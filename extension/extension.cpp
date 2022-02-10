@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <utility>
 
 namespace {
 
@@ -23,7 +24,8 @@ size_t WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
   return size * nmemb;
 }
 
-std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
+std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
+                                           const std::string& path) {
   CURL* curl = curl_easy_init();
   if (curl == nullptr) {
     return std::unique_ptr<std::string>();
@@ -42,6 +44,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
     return std::unique_ptr<std::string>();
   }
 
+  std::string url = "https://" + server + path;
   code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   if (code != CURLE_OK) {
     curl_easy_cleanup(curl);
@@ -72,7 +75,8 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
 
 #else
 
-std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
+std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
+                                           const std::string& path) {
   HINTERNET session =
       WinHttpOpen(L"WinHTTP/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
                   WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
@@ -80,17 +84,18 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& url) {
     return std::unique_ptr<std::string>();
   }
 
-  std::wstring wurl(url.begin(), url.end());
+  std::wstring wserver(server.begin(), server.end());
   HINTERNET connect =
-      WinHttpConnect(session, wurl.c_str(), INTERNET_DEFAULT_HTTPS_PORT, 0);
+      WinHttpConnect(session, wserver.c_str(), INTERNET_DEFAULT_HTTPS_PORT, 0);
   if (!connect) {
     WinHttpCloseHandle(session);
     return std::unique_ptr<std::string>();
   }
 
-  HINTERNET request =
-      WinHttpOpenRequest(connect, L"GET", NULL, NULL, WINHTTP_NO_REFERER,
-                         WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
+  std::wstring wpath(path.begin(), path.end());
+  HINTERNET request = WinHttpOpenRequest(
+      connect, L"GET", wpath.c_str(), NULL, WINHTTP_NO_REFERER,
+      WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
   if (!request) {
     WinHttpCloseHandle(connect);
     WinHttpCloseHandle(session);
@@ -192,28 +197,29 @@ std::set<std::string> ParseGroupIds(const std::string& response) {
   return result;
 }
 
-std::string BuildSteamworksQueryUrl(uint64_t steam_id64,
-                                    const std::string& steam_key) {
-  std::string url =
-      "https://api.steampowered.com/ISteamUser/GetUserGroupList/v1/?steamid=";
-  url += std::to_string(steam_id64);
-  url += "&key=";
-  url += steam_key;
-  return url;
+std::pair<std::string, std::string> BuildSteamworksQueryUrl(
+    uint64_t steam_id64, const std::string& steam_key) {
+  std::string path = "/ISteamUser/GetUserGroupList/v1/?steamid=";
+  path += std::to_string(steam_id64);
+  path += "&key=";
+  path += steam_key;
+  return std::make_pair("api.steampowered.com", path);
 }
 
-std::string BuildCommunityQueryUrl(const std::string& steam_group_id) {
-  std::string url = "https://steamcommunity.com/gid/[G:1:";
-  url += steam_group_id;
-  url += "]/memberslistxml/?xml=1";
-  return url;
+std::pair<std::string, std::string> BuildCommunityQueryUrl(
+    const std::string& steam_group_id) {
+  std::string path = "/gid/[G:1:";
+  path += steam_group_id;
+  path += "]/memberslistxml/?xml=1";
+  return std::make_pair("steamcommunity.com", path);
 }
 
 bool CheckGroupMembershipSteamworks(uint64_t steam_id64,
                                     const std::string& steam_group_id,
                                     const std::string& steam_api_key) {
-  std::string request = BuildSteamworksQueryUrl(steam_id64, steam_api_key);
-  std::unique_ptr<std::string> response = DoHttpRequest(request);
+  auto request = BuildSteamworksQueryUrl(steam_id64, steam_api_key);
+  std::unique_ptr<std::string> response =
+      DoHttpRequest(request.first, request.second);
   if (!response) {
     return false;
   }
@@ -223,8 +229,9 @@ bool CheckGroupMembershipSteamworks(uint64_t steam_id64,
 
 bool CheckGroupMembershipCommunity(uint64_t steam_id64,
                                    const std::string& steam_group_id) {
-  std::string request = BuildCommunityQueryUrl(steam_group_id);
-  std::unique_ptr<std::string> response = DoHttpRequest(request);
+  auto request = BuildCommunityQueryUrl(steam_group_id);
+  std::unique_ptr<std::string> response =
+      DoHttpRequest(request.first, request.second);
   if (!response) {
     return false;
   }
