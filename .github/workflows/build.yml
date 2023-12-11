@@ -20,12 +20,10 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v2.2.1
         with:
-          name: auth_by_steam_group_windows
+          name: output_windows
           path: build/dist/auth_by_steam_group.zip
 
-  build-linux-and-deploy:
-    concurrency: ci-${{ github.ref }}
-    needs: [build-windows]
+  build-linux:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,16 +42,8 @@ jobs:
         run:
           PATH=/home/runner/.local/bin:$PATH ./build.sh
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v1
+      - name: Collect Artifacts
+        uses: actions/upload-artifact@v3
         with:
-          name: auth_by_steam_group_windows
+          name: output_linux
           path: build/dist
-
-      - name: Deploy tarball
-        uses: JamesIves/github-pages-deploy-action@3.7.1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: build/dist
-          TARGET_FOLDER: releases/nightly
