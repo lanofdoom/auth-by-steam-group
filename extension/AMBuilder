@@ -1,14 +1,15 @@
 # vim: set sts=2 ts=8 sw=2 tw=99 et ft=python:
-import os, sys
+import os
 
-projectName = 'auth_by_steam_group'
+# Name of your extesion, this will also be it's file name.
+projectName = 'sample'
 
 # smsdk_ext.cpp will be automatically added later
 sourceFiles = [
   'extension.cpp',
 ]
 
-project = Extension.HL2Project(builder, projectName + '.ext')
+project = builder.LibraryProject(projectName)
 
 if os.path.isfile(os.path.join(builder.currentSourcePath, 'sdk', 'smsdk_ext.cpp')):
   # Use the copy included in the project
@@ -18,10 +19,16 @@ else:
   project.sources += [os.path.join(Extension.sm_root, 'public', 'smsdk_ext.cpp')]
 
 project.sources += sourceFiles
-  
+
 for sdk_name in Extension.sdks:
   sdk = Extension.sdks[sdk_name]
-  
-  binary = Extension.HL2Config(project, projectName + '.ext.' + sdk.ext, sdk)
+  if sdk['name'] in ['mock']:
+    continue
 
-Extension.extensions = builder.Add(project)
+  for cxx in builder.targets:
+    if not cxx.target.arch in sdk['platforms'][cxx.target.platform]:
+      continue
+
+    binary = Extension.HL2ExtConfig(project, builder, cxx, projectName + '.ext.' + sdk['extension'], sdk)
+
+Extension.extensions += builder.Add(project)

@@ -3,7 +3,7 @@
 
 #define SMEXT_CONF_NAME         "Authenticate by Steam Group Extension"
 #define SMEXT_CONF_DESCRIPTION  "Block non-members of a Steam group from joining"
-#define SMEXT_CONF_VERSION      "2.3.0"
+#define SMEXT_CONF_VERSION      "2.3.1"
 #define SMEXT_CONF_AUTHOR       "LAN of DOOM"
 #define SMEXT_CONF_URL          "https://lanofdoom.github.io/auth-by-steam-group/"
 #define SMEXT_CONF_LOGTAG       "LODAUTH"
