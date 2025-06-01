@@ -2,7 +2,7 @@
 import os
 
 # Name of your extesion, this will also be it's file name.
-projectName = 'sample'
+projectName = 'auth_by_steam_group'
 
 # smsdk_ext.cpp will be automatically added later
 sourceFiles = [
