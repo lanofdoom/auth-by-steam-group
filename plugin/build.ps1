@@ -5,7 +5,7 @@ Function New-TemporaryFolder {
 }
 
 $tempdir = New-TemporaryFolder
-$tools = 'https://sm.alliedmods.net/smdrop/1.10/sourcemod-1.10.0-git6528-windows.zip'
+$tools = 'https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git7206-windows.zip'
 $tools_download_path = $tempdir.FullName + '\tools.zip'
 
 & curl $tools -o $tools_download_path

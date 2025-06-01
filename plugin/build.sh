@@ -1,6 +1,6 @@
 #!/bin/bash -ue
 
-tools=https://sm.alliedmods.net/smdrop/1.10/sourcemod-1.10.0-git6528-linux.tar.gz
+tools=https://sm.alliedmods.net/smdrop/1.12/sourcemod-1.12.0-git7206-linux.tar.gz
 
 tmp_dir=$(mktemp -d)
 echo using temporary folder: $tmp_dir >&2
