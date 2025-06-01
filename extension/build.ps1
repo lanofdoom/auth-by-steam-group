@@ -5,7 +5,7 @@ python ..\configure.py --hl2sdk-manifest-path=../../sourcemod/hl2sdk-manifests/
 ambuild
 
 mkdir -p ..\..\..\build\addons\sourcemod\extensions
-cp package\addons\sourcemod\extensions\* ..\..\..\build\addons\sourcemod\extensions\
+cp -r package\addons\sourcemod\extensions\* ..\..\..\build\addons\sourcemod\extensions\
 
 echo built auth_by_source_id.ext.dll
 
