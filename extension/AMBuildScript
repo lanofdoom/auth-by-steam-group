@@ -40,7 +40,7 @@ if not os.path.exists(hl2sdk_manifests_path):
   if not builder.options.hl2sdk_manifest:
     raise Exception('HL2SDK Manifest root path not set! (--hl2sdk-manifest-path)')
   else:
-    hl2sdk_manifests_path = os.path.join(builder.options.hl2sdk_manifest, 'SdkHelpers.ambuild')
+    hl2sdk_manifests_path = os.path.join(os.getcwd(), builder.options.hl2sdk_manifest, 'SdkHelpers.ambuild')
 
     if not os.path.exists(hl2sdk_manifests_path):
       raise Exception('Could not find SdkHelpers.ambuild in the given HL2SDK Manifest path!')
@@ -278,6 +278,7 @@ class ExtensionConfig(object):
       'uuid.lib',
       'odbc32.lib',
       'odbccp32.lib',
+      'winhttp.lib',
     ]
 
     if builder.options.opt == '1':

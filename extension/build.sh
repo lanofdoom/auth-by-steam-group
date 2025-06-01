@@ -12,7 +12,7 @@
 mkdir -p ../alliedmodders/extension/build
 cp -r ./* ../alliedmodders/extension/
 cd ../alliedmodders/extension/build
-CC=clang CXX=clang++ python3 ../configure.py
+CC=clang CXX=clang++ python3 ../configure.py --hl2sdk-manifest-path=../../sourcemod/hl2sdk-manifests/
 ambuild
 
 mkdir -p ../../../build/addons/sourcemod/extensions
