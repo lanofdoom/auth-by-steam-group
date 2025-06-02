@@ -7,7 +7,7 @@ Note, servers with ``sv_lan 1`` are not compatible with Steam Group authenticati
 Check out the repository, install the dependencies listed in ``build.sh``, and then run the ``./build.sh`` script.
 
 # Installation
-1) If running Linux, install the ``libcurl:i386`` package or its equivalent on your distribution to your server.
+1) If running Linux, install the ``ca-certificates`` and ``curl`` packages or their equivalent on your distribution to your server.
 2) Extract ``auth_by_steam_group_source.tar.gz`` or ``auth_by_steam_group_source.zip`` in your server's ``cstrike`` directory or equivalent.
 
 # Console Variables
