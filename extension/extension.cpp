@@ -1,7 +1,13 @@
 #include "extension.h"
 
 #ifndef _WIN32
-#include <i386-linux-gnu/curl/curl.h>
+#include <boost/asio/connect.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/ssl/context.hpp>
+#include <boost/asio/ssl/error.hpp>
+#include <boost/beast.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/lexical_cast.hpp>
 #else
 #include <winhttp.h>
 #endif  // _WIN32
@@ -16,61 +22,62 @@ AuthBySteamGroup g_auth_by_steam_group;
 
 #ifndef _WIN32
 
-size_t WriteCallback(char* ptr, size_t size, size_t nmemb, void* userdata) {
-  std::string* data = reinterpret_cast<std::string*>(userdata);
-  for (size_t i = 0; i < size * nmemb; i++) {
-    data->push_back(ptr[i]);
-  }
-  return size * nmemb;
-}
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace net = boost::asio;
+namespace ssl = boost::asio::ssl;
+using tcp = net::ip::tcp;
 
 std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
                                            const std::string& path) {
-  CURL* curl = curl_easy_init();
-  if (curl == nullptr) {
-    return std::unique_ptr<std::string>();
+  std::unique_ptr<std::string> result;
+  try {
+    net::io_context ioc;
+
+    // Resolve the host
+    tcp::resolver resolver(ioc);
+    auto results = resolver.resolve(host, "443");
+
+    // Configure SSL context
+    ssl::context ctx{ssl::context::tlsv12_client};
+    ctx.set_verify_mode(ssl::verify_peer);
+    ctx.set_default_verify_paths();
+
+    // Configure the stream
+    beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
+    if (!SSL_set_tlsext_host_name(stream.native_handle(), server)) {
+      return result;
+    }
+
+    // Connect to the remote hosts
+    beast::get_lowest_layer(stream).connect(results);
+
+    // Perform the SSL handshake
+    stream.handshake(ssl::stream_base::client);
+
+    // Set up an HTTP/1.1 GET request message
+    http::request<http::string_body> req{http::verb::get, path, 11};
+    req.set(http::field::host, host);
+    req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+
+    // Send the HTTP request to the remote host
+    http::write(stream, req);
+
+    // Receive the HTTP response
+    beast::flat_buffer buffer;
+    http::response<http::string_body> res;
+    http::read(stream, buffer, res);
+
+    // Copy the result out
+    result = std::make_unique<std::string>(
+        boost::lexical_cast<std::string>(res.body()));
+
+    stream.shutdown(ec);
+  } catch (...) {
+    // All errors are ignored
   }
 
-  CURLcode code = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  std::unique_ptr<std::string> data = std::make_unique<std::string>();
-  code = curl_easy_setopt(curl, CURLOPT_WRITEDATA, data.get());
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  std::string url = "https://" + server + path;
-  code = curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  code = curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1);
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  code = curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-  if (code != CURLE_OK) {
-    curl_easy_cleanup(curl);
-    return std::unique_ptr<std::string>();
-  }
-
-  code = curl_easy_perform(curl);
-  curl_easy_cleanup(curl);
-
-  if (code != CURLE_OK) {
-    return std::unique_ptr<std::string>();
-  }
-
-  return data;
+  return result;
 }
 
 #else
@@ -177,7 +184,8 @@ std::vector<std::string> Tokenize(const std::string& value,
 
 // This is a bit of a hack. Instead of properly parsing out the JSON, just
 // break it up into tokens and iterate through them. This should be fine
-// given the simplicity of the response, but this is worth fixing at some point.
+// given the simplicity of the response, but this is worth fixing at some
+// point.
 std::set<std::string> ParseGroupIds(const std::string& response) {
   std::vector<std::string> tokens = Tokenize(response, "{}[]:\",");
 
