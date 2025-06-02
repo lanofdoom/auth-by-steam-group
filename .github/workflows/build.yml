@@ -27,7 +27,7 @@ jobs:
           path: build/dist/auth_by_steam_group.zip
 
   build-linux:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04 # Locks to a glibc version available in Debian bookwork
 
     steps:
       - uses: actions/checkout@v4
