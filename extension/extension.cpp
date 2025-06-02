@@ -36,7 +36,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
 
     // Resolve the host
     tcp::resolver resolver(ioc);
-    auto results = resolver.resolve(host, "443");
+    auto results = resolver.resolve(server, "443");
 
     // Configure SSL context
     ssl::context ctx{ssl::context::tlsv12_client};
@@ -45,7 +45,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
 
     // Configure the stream
     beast::ssl_stream<beast::tcp_stream> stream(ioc, ctx);
-    if (!SSL_set_tlsext_host_name(stream.native_handle(), server)) {
+    if (!SSL_set_tlsext_host_name(stream.native_handle(), server.c_str())) {
       return result;
     }
 
@@ -57,7 +57,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
 
     // Set up an HTTP/1.1 GET request message
     http::request<http::string_body> req{http::verb::get, path, 11};
-    req.set(http::field::host, host);
+    req.set(http::field::host, server);
     req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
     // Send the HTTP request to the remote host
@@ -72,7 +72,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
     result = std::make_unique<std::string>(
         boost::lexical_cast<std::string>(res.body()));
 
-    stream.shutdown(ec);
+    stream.shutdown();
   } catch (...) {
     // All errors are ignored
   }
