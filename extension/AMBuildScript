@@ -224,7 +224,10 @@ class ExtensionConfig(object):
 
     # Work around errors from smsdk_ext.cpp
     if have_clang:
-      cxx.cxxflags += ['-Wno-implicit-exception-spec-mismatch']
+      cxx.cxxflags += [
+        '-Wno-implicit-exception-spec-mismatch',
+        '-Wno-expansion-to-defined',
+      ]
 
     # Work around SDK warnings.
     if cxx.version >= 'clang-10.0' or cxx.version >= 'apple-clang-12.0':
