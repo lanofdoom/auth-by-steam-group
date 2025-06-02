@@ -27,7 +27,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
   }
 
   std::string result;
-  for (int c = fgetc(pipe); c = fgetc(pipe); c != EOF) {
+  for (int c = fgetc(pipe); c != EOF; c = fgetc(pipe)) {
     result += static_cast<char>(c);
   }
 
