@@ -1,6 +1,9 @@
 mkdir -p alliedmodders
 cd alliedmodders
 git clone --recursive https://github.com/alliedmodders/sourcemod
+cd sourcemod
+git checkout 5c407d494889dd1b6b2187bbc31ac82
+cd ..
 .\sourcemod\tools\checkout-deps.ps1
 
 cd ..\extension
