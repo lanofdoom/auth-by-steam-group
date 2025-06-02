@@ -228,6 +228,7 @@ class ExtensionConfig(object):
         '-Wno-implicit-exception-spec-mismatch',
         '-Wno-expansion-to-defined',
         '-Wno-unknown-pragmas',
+        '-Wno-dangling-else',
       ]
 
     # Work around SDK warnings.
