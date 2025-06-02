@@ -227,6 +227,7 @@ class ExtensionConfig(object):
       cxx.cxxflags += [
         '-Wno-implicit-exception-spec-mismatch',
         '-Wno-expansion-to-defined',
+        '-Wno-unknown-pragmas',
       ]
 
     # Work around SDK warnings.
