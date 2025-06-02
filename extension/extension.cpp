@@ -19,7 +19,7 @@ AuthBySteamGroup g_auth_by_steam_group;
 
 std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
                                            const std::string& path) {
-  std::string command = "curl -s https://" + server + path;
+  std::string command = "curl -g -s https://" + server + path;
 
   FILE* pipe = popen(command.c_str(), "r");
   if (!pipe) {
