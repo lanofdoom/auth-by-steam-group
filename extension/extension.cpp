@@ -1,7 +1,7 @@
 #include "extension.h"
 
 #ifndef _WIN32
-#include <i386-linux-gnu/curl/curl.h>
+#include <curl/curl.h>
 #else
 #include <winhttp.h>
 #endif  // _WIN32
