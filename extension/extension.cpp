@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <string>
 #include <utility>
 
 namespace {
@@ -18,7 +19,7 @@ AuthBySteamGroup g_auth_by_steam_group;
 
 std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
                                            const std::string& path) {
-  std::string command = "curl https://" + server + path;
+  std::string command = "curl -s https://" + server + path;
 
   FILE* pipe = popen(command.c_str(), "r");
   if (!pipe) {
@@ -32,7 +33,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
 
   fclose(pipe);
 
-  return result;
+  return std::make_unique<std::string>(std::move(result));
 }
 
 #else
