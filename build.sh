@@ -12,9 +12,12 @@ mkdir -p alliedmodders
 cd alliedmodders
 git clone --recursive https://github.com/alliedmodders/sourcemod
 cd sourcemod
-git checkout sourcemod-1.7.2
+git checkout 5c407d494889dd1b6b2187bbc31ac82 && git clean -fd
 cd ..
 bash sourcemod/tools/checkout-deps.sh
+cd mmsource-1.12
+git clean -fd && git checkout 02ee4a312525d17b2f6d2f21a953d06
+cd ..
 
 cd ../extension
 ./build.sh
