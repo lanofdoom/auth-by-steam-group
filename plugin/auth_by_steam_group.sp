@@ -11,7 +11,7 @@ Handle g_steam_key;
 public const Plugin myinfo = {
     name = "Authenticate by Steam Group Plugin", author = "LAN of DOOM",
     description = "Block non-members of a Steam group from joining",
-    version = "3.0.0",
+    version = "3.0.1",
     url = "https://lanofdoom.github.io/auth-by-steam-group/"};
 
 public Extension __ext_auth_by_steam_group = {

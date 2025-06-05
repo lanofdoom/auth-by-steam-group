@@ -31,7 +31,7 @@ std::unique_ptr<std::string> DoHttpRequest(const std::string& server,
     result += static_cast<char>(c);
   }
 
-  fclose(pipe);
+  pclose(pipe);
 
   return std::make_unique<std::string>(std::move(result));
 }
