@@ -1,3 +1,2 @@
-alliedmodders/
-build/
 .vscode/
+/bazel-*

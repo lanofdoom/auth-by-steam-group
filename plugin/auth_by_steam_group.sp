@@ -1,6 +1,6 @@
 #include <sourcemod>
 
-#include "../extension/auth_by_steam_group.inc"
+#include <auth_by_steam_group>
 
 #define CVAR_MAX_LENGTH 256
 

@@ -1,0 +1,8 @@
+load("@rules_sourcemod//:defs.bzl", "sourcemod_plugin")
+
+sourcemod_plugin(
+    name = "auth_by_steam_group",
+    src = "auth_by_steam_group.sp",
+    deps = ["//extension:auth_by_steam_group"],
+    visibility = ["//visibility:public"],
+)

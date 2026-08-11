@@ -1,0 +1,20 @@
+module(
+    name = "auth_by_steam_group",
+    version = "3.0.2",
+)
+
+bazel_dep(name = "platforms", version = "1.1.0")
+bazel_dep(name = "rules_pkg", version = "1.3.0")
+
+bazel_dep(name = "rules_sourcemod")
+git_override(
+    module_name = "rules_sourcemod",
+    commit = "f0573a67a72dbdf366f23233b5d515498aead03c",
+    remote = "https://github.com/kleinpa/rules_sourcemod.git",
+)
+
+register_toolchains("@rules_sourcemod//linux:all")
+
+sourcemod_dev = use_extension("@rules_sourcemod//:extensions.bzl", "sourcemod", dev_dependency = True)
+sourcemod_dev.windows_cross_toolchain(accept_license = True)
+use_repo(sourcemod_dev, "llvm_toolchain_windows_x86_32")

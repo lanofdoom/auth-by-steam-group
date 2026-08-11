@@ -1,0 +1,17 @@
+load("@rules_sourcemod//:defs.bzl", "sourcemod_extension")
+
+sourcemod_extension(
+    name = "auth_by_steam_group",
+    srcs = ["extension.cpp"],
+    hdrs = [
+        "extension.h",
+        "smsdk_config.h",
+    ],
+    includes = ["."],
+    linkopts = select({
+        "@platforms//os:windows": ["winhttp.lib"],
+        "//conditions:default": [],
+    }),
+    pawn_hdrs = ["auth_by_steam_group.inc"],
+    visibility = ["//visibility:public"],
+)
