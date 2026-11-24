@@ -15,9 +15,11 @@ Windows targets build natively on Windows. To cross-compile ``windows_x86_32`` f
 The output is ``bazel-bin/auth_by_steam_group.tar.gz``.
 
 # Installation
-1) If running Linux, install the ``ca-certificates`` and ``curl`` packages or their equivalent on your distribution to your server.
+1) If running Linux, install the ``ca-certificates`` package or its equivalent on your distribution to your server. Certificates are read from ``/etc/ssl/certs``.
 2) If running *64-bit* Linux and the dedicated server is a 32-bit binary, install the ``libstdc++6:i386`` package or its equivalent on your distribution to your server.
 3) Extract ``auth_by_steam_group.tar.gz`` in your server's ``cstrike`` directory or equivalent.
+
+``libcurl`` is linked statically on both Linux and Windows, so no external ``curl`` or ``libcurl`` package is needed.
 
 # Console Variables
 ``sm_auth_by_steam_allowjoin_enabled`` If enabled, members of the authorized Steam group can allow the next unauthorized user to join the server by saying `allowjoin` in chat. Default value is enabled.

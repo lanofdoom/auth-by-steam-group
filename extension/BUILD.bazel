@@ -8,10 +8,7 @@ sourcemod_extension(
         "smsdk_config.h",
     ],
     includes = ["."],
-    linkopts = select({
-        "@platforms//os:windows": ["winhttp.lib"],
-        "//conditions:default": [],
-    }),
     pawn_hdrs = ["auth_by_steam_group.inc"],
     visibility = ["//visibility:public"],
+    deps = ["@rules_sourcemod//sourcemod:curl"],
 )
